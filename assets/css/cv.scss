@@ -5,3 +5,4 @@
 
 @import "online-cv/skins/{{ site.online_cv_theme_skin | default: 'blue' }}"; // skin
 @import "online-cv"; // main partials
+@import "rdmolony";
