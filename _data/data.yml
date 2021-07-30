@@ -39,13 +39,15 @@ sidebar:
         link:
 
 education:
-    - degree: BAI & MAI in Mechanical & Manufacturing Engineering
+    - degree: MAI in Mechanical Engineering
+      result: 1st class honours
       university: Trinity College Dublin
       time: 2014 - 2019
-      details: |
-        - 1st class honours in MAI & BAI
-        - Gold Medal in BAI
-    - degree: Year Abroad in Mechanical & Manufacturing Engineering
+    - degree: BAI in Mechanical Engineering
+      result: 1st class honours, Gold Medal
+      university: Trinity College Dublin
+      time: 2014 - 2019
+    - degree: Non-EU Exchange in Mechanical Engineering
       university: Australian National University
       time: 2018 - 2019
 
