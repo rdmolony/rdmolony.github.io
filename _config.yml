@@ -57,9 +57,9 @@ author:
   avatar : "/assets/images/profile.png"
   bio    : "Energy Modeller / Data Scientist"
   links:
-    - label: "Website"
+    - label: "CV"
       icon: "fas fa-fw fa-link"
-      url: "https://rdmolony.github.io"
+      url: "https://rdmolony.github.io/cv"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/rdmolony"
