@@ -57,12 +57,18 @@ author:
   avatar : "/assets/images/profile.png"
   bio    : "Energy Modeller / Data Scientist"
   links:
-    - label: "CV"
-      icon: "fas fa-fw fa-link"
-      url: "https://rdmolony.github.io/cv"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/rdmolony"
+    - label: "Linkedin"
+      icon: "fab fa-linkedin"
+      url: "https://linkedin.com/in/rowan-molony-113bbb155/"
+    - label: "Stackoverflow"
+      icon: "fab fa-stack-overflow"
+      url: "https://stackoverflow.com/users/12269508/rdmolony"
+    - label: "Email"
+      icon: "fas fa-envelope-square"
+      url: "rowanmolony@gmail.com"
 
 footer:
   links:
