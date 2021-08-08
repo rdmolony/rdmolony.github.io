@@ -6,11 +6,11 @@ permalink: "/cv/"
 # Rowan Molony
 
 <div id="webaddress">
-  <a href="https://rdmolony.github.io"><i class="fas fa-home"></i></a>
-  <a href="https://github.com/rdmolony"><i class="fab fa-github"></i></a>
-  <a href="https://linkedin.com/in/rowan-molony-113bbb155/"><i class="fab fa-stack-overflow"></i></a>
-  <a href="https://stackoverflow.com/users/12269508/rdmolony"><i class="fab fa-linkedin"></i></a>
-  <a href="mailto:rowanmolony@gmail.com"><i class="fas fa-envelope-square"></i></a>
+  <a href="https://rdmolony.github.io"><i class="fas fa-home"></i> rdmolony.github.io</a> -
+  <a href="https://github.com/rdmolony"><i class="fab fa-github"></i> rdmolony</a> -
+  <a href="https://linkedin.com/in/rowan-molony-113bbb155/"><i class="fab fa-linkedin"></i> rowan-molony-113bbb155</a> <br>
+  <a href="https://stackoverflow.com/users/12269508/rdmolony"><i class="fab fa-stack-overflow"></i> 12269508/rdmolony</a> -
+  <a href="mailto:rowanmolony@gmail.com"><i class="fas fa-envelope-square"></i> rowanmolony@gmail.com</a>
 </div>
 
 ## Experience
@@ -42,6 +42,12 @@ permalink: "/cv/"
 `2014-2018`
 **Bachelor of Mechanical Engineering**, *Trinity College Dublin*, 1.1 & Gold Medal
 
+
+## Languages
+
+- **Native:** English
+- **Conversational:** French
+
 ## [Contributions](/contributions/)
 
 <img src="https://avatars.githubusercontent.com/u/60114551?s=20&v=4">[ploomber](https://github.com/ploomber/ploomber/issues?q=rdmolony)
@@ -58,8 +64,3 @@ permalink: "/cv/"
 <a href="https://github.com/rdmolony">
     <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=rdmolony&show_icons=true">
 </a>
-
-## Languages
-
-- **Native:** English
-- **Conversational:** French
