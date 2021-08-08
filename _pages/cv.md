@@ -5,8 +5,12 @@ title: "CV"
 
 ## Projects
 
-- [`codema-dev` website](/blog/codema-dev-website/) (creator & maintainer) - hosts up-to-date, Dublin energy data, visualisations and an experimental building retrofit application.  It aims to support local authority planners and small energy community consultants in the creation of their local area plans.
-- [`energy-modelling-ireland` website](/blog/energy-modelling-ireland-website/) (creator & maintainer) - hosts up-to-date, all-of-Ireland energy data, visualisations, guides and an experimental Irish building stock generator.  It aims to support energy researchers across Ireland in finding useful data sources and in creating energy models of the Irish energy system.
+- [`codema-dev.github.io`](/blog/codema-dev-website/) - hosts up-to-date Dublin energy data, visualisations and applications.  It aims to support local authority planners and small energy community consultants in the creation of their local area plans.
+- [`energy-modelling-ireland.github.io`](/blog/energy-modelling-ireland-website/) - hosts up-to-date Ireland energy data, visualisations, guides and applications.
+- [`energy-modelling-ireland/ibsg`](/blog/irish-building-stock-generator) - an interactive web application that generates a clean Irish residential building stock.
+- [`codema-dev/dublin-energy-app`](/blog/dublin-energy-app/) - an interactive web application that models retrofit scenarios on the Dublin building stock.
+- [`codema-dev/rc-building-model`](/blog/rc-building-model) - a reimplementation of SEAI's Dwelling Energy Assessment Procedure (DEAP) model in Python.  It is the first stock model to capable of calculating BER ratings at scale.  Where DEAP's Excel implementation is limited to one building at a time `rc-building-model` is capable of modelling DEAP parameters (such as fabric heat loss) for hundreds of thousands of buildings instantaneously thanks to `pandas` and `numpy`.  
+- [`codema-dev/projects`](/blog/codema-dev-projects) - a collection of Extract Transform Load (ETL) projects used in the generation of various maps on the `codema-dev.github.io` website.  
 
 ## [Contributions](/contributions/)
 
@@ -17,7 +21,7 @@ title: "CV"
 
 ## Experience
 
-|--------------------------------|---------------------------------|----------------|
+|----------------------------------|---------------------------------|----------------|
 | Energy Modeller / Data Scientist | Codema - Dublin's Energy Agency | 2019 - Present |
 
 ## Education
