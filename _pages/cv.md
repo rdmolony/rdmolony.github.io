@@ -42,6 +42,9 @@ permalink: "/cv/"
 `2014-2018`
 **Bachelor of Mechanical Engineering**, *Trinity College Dublin*, 1.1 & Gold Medal
 
+## Hobbies
+
+Rock Climbing, Surfing, Hiking, Cycling, Scuba Diving
 
 ## Languages
 
