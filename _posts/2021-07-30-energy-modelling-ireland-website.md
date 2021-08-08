@@ -10,4 +10,4 @@ It was inspired by [`awesome`](https://github.com/sindresorhus/awesome) and [ope
 
 It migrated from a `Github` README, to a [`Github Wiki`](https://docs.github.com/en/communities/documenting-your-project-with-wikis/about-wikis), to an [`mkdocs-material`](https://squidfunk.github.io/mkdocs-material/) website, and finally to a [`Jekyll`](https://docs.github.com/en/pages/setting-up-a-github-pages-site-with-jekyll/about-github-pages-and-jekyll) website.  `Github Wiki` made the User Interface (UI) cleaner by adding a sidebar of pages, `mkdocs-material` added search capabilities and page-specific sidebars, while `Jekyll` added blogging capabilities on top of all that `mkdocs` had to offer.
 
-<div><a href="https://energy-modelling-ireland.github.io" class="btn btn--primary">{{ site.data.ui-text[site.locale].ext_link_label | default: "Direct Link" }}</a></div>
+<div><a href="https://energy-modelling-ireland.github.io" class="btn btn--primary">energy-modelling-ireland.github.io</a></div>

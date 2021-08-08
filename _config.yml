@@ -69,6 +69,9 @@ author:
     - label: "Email"
       icon: "fas fa-envelope-square"
       url: "rowanmolony@gmail.com"
+    - label: "CV"
+      icon: "fas fa-file"
+      url: "/cv/"
 
 footer:
   links:
