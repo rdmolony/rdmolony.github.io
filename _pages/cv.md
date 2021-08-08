@@ -58,3 +58,8 @@ permalink: "/cv/"
 <a href="https://github.com/rdmolony">
     <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=rdmolony&show_icons=true">
 </a>
+
+## Languages
+
+- **Native:** English
+- **Conversational:** French
