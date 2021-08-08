@@ -5,11 +5,11 @@ title: "CV"
 
 ## Projects
 
-- [`codema-dev.github.io`](/blog/codema-dev-website/) - hosts up-to-date Dublin energy data, visualisations and applications.  It aims to support local authority planners and small energy community consultants in the creation of their local area plans.
+- [`codema-dev.github.io`](/blog/codema-dev-website/) - hosts up-to-date Dublin energy data, visualisations and applications. 
 - [`energy-modelling-ireland.github.io`](/blog/energy-modelling-ireland-website/) - hosts up-to-date Ireland energy data, visualisations, guides and applications.
 - [`energy-modelling-ireland/ibsg`](/blog/irish-building-stock-generator) - an interactive web application that generates a clean Irish residential building stock.
 - [`codema-dev/dublin-energy-app`](/blog/dublin-energy-app/) - an interactive web application that models retrofit scenarios on the Dublin building stock.
-- [`codema-dev/rc-building-model`](/blog/rc-building-model) - a reimplementation of SEAI's Dwelling Energy Assessment Procedure (DEAP) model in Python.  It is the first stock model to capable of calculating BER ratings at scale.  Where DEAP's Excel implementation is limited to one building at a time `rc-building-model` is capable of modelling DEAP parameters (such as fabric heat loss) for hundreds of thousands of buildings instantaneously thanks to `pandas` and `numpy`.  
+- [`codema-dev/rc-building-model`](/blog/rc-building-model) - a reimplementation of SEAI's Dwelling Energy Assessment Procedure (DEAP) model in Python.
 - [`codema-dev/projects`](/blog/codema-dev-projects) - a collection of Extract Transform Load (ETL) projects used in the generation of various maps on the `codema-dev.github.io` website.  
 
 ## [Contributions](/contributions/)
