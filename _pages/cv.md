@@ -44,7 +44,7 @@ permalink: "/cv/"
 
 ## Hobbies
 
-Rock Climbing, Surfing, Hiking, Cycling, Scuba Diving
+Reading, Rock Climbing, Surfing, Hiking, Cycling, Scuba Diving
 
 ## Languages
 
