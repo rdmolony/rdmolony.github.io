@@ -1,5 +1,5 @@
 ---
-title: "Dublin Modelling"
+title: "Energy Modelling"
 category: blog
 tags:
   - link
