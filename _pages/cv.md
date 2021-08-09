@@ -20,14 +20,14 @@ permalink: "/cv/"
 
 ## Projects
 
-- [`codema-dev/projects`]({{ site.root_url }}/blog/codema-dev-projects) - source code used in the generation of maps on the `codema-dev.github.io` website. 
+- [`codema-dev/projects`]({{ site.root_url }}/blog/codema-dev-projects) - source code used in the generation of interactive maps on the [`codema-dev.github.io`]({{ site.root_url }}/blog/codema-dev-website/) website. 
 - [`ibsg`]({{ site.root_url }}/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
 - [`dublin-energy-app`]({{ site.root_url }}/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
 - [`rc-building-model`]({{ site.root_url }}/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
-- [MAI thesis]({{ site.root_url }}/blog/energy-modelling) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/)
-- [Orangeworks](https://sugar-network.org/projects/) (Innovation in Product Development) - created a laser cut, computer-vision driven tabletop team building platform in collaboration with a team from the University of Sao Paolo. 
+- [`Thesis`]({{ site.root_url }}/blog/energy-modelling) (Masters) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/)
+- [`Orangeworks`]({{ site.root_url }}/blog/orangeworks) (Innovation in Product Development) - as part of a joint Trinity / University of Sao Paolo 8 person team, created a laser cut, computer-vision driven tabletop team building platform which we presented at the Sugar Network Expo in San Francisco in 2019, becoming [*a showcase project on their website*](https://sugar-network.org/projects/)
 
-## Websites
+## Websites Built<br> by Me
 
 - [`energy-modelling-ireland.github.io`]({{ site.root_url }}/blog/energy-modelling-ireland-website/) - crowd-sourced Ireland energy data, visualisations, guides and applications powered by `Jekyll`, `HTML` & `css`.
 - [`codema-dev.github.io`]({{ site.root_url }}/blog/codema-dev-website/) - Dublin energy data, visualisations and applications powered by `Jekyll`, `HTML` & `css`. 
@@ -46,7 +46,7 @@ permalink: "/cv/"
 
 ## Hobbies
 
-Reading, Rock Climbing, Surfing, Hiking, Cycling, Scuba Diving
+Reading, Sea Swimming/Floating, Rock Climbing, Surfing, Hiking, Cycling, Scuba Diving
 
 ## Languages
 
