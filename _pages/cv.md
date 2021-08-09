@@ -20,16 +20,16 @@ permalink: "/cv/"
 
 ## Projects
 
+- [`codema-dev/projects`](/blog/codema-dev-projects) - source code used in the generation of maps on the `codema-dev.github.io` website. 
 - [`ibsg`](/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
 - [`dublin-energy-app`](/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
 - [`rc-building-model`](/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
-- [`codema-dev/projects`](/blog/codema-dev-projects) - source code used in the generation of maps on the `codema-dev.github.io` website. 
 
 ## Websites
 
+- [`energy-modelling-ireland.github.io`](/blog/energy-modelling-ireland-website/) - crowd-sourced Ireland energy data, visualisations, guides and applications powered by `Jekyll`, `HTML` & `css`.
 - [`rdmolony.github.io`](/) - my personal website powered by `Jekyll`, `HTML` & `css` 
 - [`codema-dev.github.io`](/blog/codema-dev-website/) - Dublin energy data, visualisations and applications powered by `Jekyll`, `HTML` & `css`. 
-- [`energy-modelling-ireland.github.io`](/blog/energy-modelling-ireland-website/) - crowd-sourced Ireland energy data, visualisations, guides and applications powered by `Jekyll`, `HTML` & `css`.
 
 ## Education
 
