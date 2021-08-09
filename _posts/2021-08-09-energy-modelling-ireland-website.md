@@ -3,6 +3,8 @@ title: "Energy Modelling Ireland Website"
 category: blog
 tags:
   - link
+  - Jekyll
+  - awesome
 ---
 A website of curated resources to aid Irish energy research.  I was inspired by [`awesome`](https://github.com/sindresorhus/awesome) and [open-sustainable-technology](https://github.com/protontypes/open-sustainable-technology) which host crowd-sourced lists on `Github` which is easy to change and so easy to keep up to date.  It aims to support energy researchers across Ireland by crowd-sourcing data & tutorials.  As the concept grew, researchers from organisations and universities across Ireland started to participate and feed in over monthly network `Microsoft Teams` calls.
 
