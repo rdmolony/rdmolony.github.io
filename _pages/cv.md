@@ -20,17 +20,17 @@ permalink: "/cv/"
 
 ## Projects
 
-- [`codema-dev/projects`](/blog/codema-dev-projects) - source code used in the generation of maps on the `codema-dev.github.io` website. 
-- [`ibsg`](/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
-- [`dublin-energy-app`](/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
-- [`rc-building-model`](/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
-- [MAI thesis](/assets/pdfs/RMolony_MAI_Thesis_2019.pdf) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/) 
+- [`codema-dev/projects`]({{ site.root_url }}/blog/codema-dev-projects) - source code used in the generation of maps on the `codema-dev.github.io` website. 
+- [`ibsg`]({{ site.root_url }}/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
+- [`dublin-energy-app`]({{ site.root_url }}/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
+- [`rc-building-model`]({{ site.root_url }}/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
+- [MAI thesis]({{ site.root_url }}/assets/pdfs/RMolony_MAI_Thesis_2019.pdf) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/) 
 
 ## Websites
 
-- [`energy-modelling-ireland.github.io`](/blog/energy-modelling-ireland-website/) - crowd-sourced Ireland energy data, visualisations, guides and applications powered by `Jekyll`, `HTML` & `css`.
-- [`codema-dev.github.io`](/blog/codema-dev-website/) - Dublin energy data, visualisations and applications powered by `Jekyll`, `HTML` & `css`. 
-- [`rdmolony.github.io`](/) - my personal website powered by `Jekyll`, `HTML` & `css` 
+- [`energy-modelling-ireland.github.io`]({{ site.root_url }}/blog/energy-modelling-ireland-website/) - crowd-sourced Ireland energy data, visualisations, guides and applications powered by `Jekyll`, `HTML` & `css`.
+- [`codema-dev.github.io`]({{ site.root_url }}/blog/codema-dev-website/) - Dublin energy data, visualisations and applications powered by `Jekyll`, `HTML` & `css`. 
+- [`rdmolony.github.io`]({{ site.root_url }}) - my personal website powered by `Jekyll`, `HTML` & `css` 
 
 ## Education
 
