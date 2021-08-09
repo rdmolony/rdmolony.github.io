@@ -24,6 +24,7 @@ permalink: "/cv/"
 - [`ibsg`](/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
 - [`dublin-energy-app`](/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
 - [`rc-building-model`](/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
+- [MAI thesis](/assets/pdfs/RMolony_MAI_Thesis_2019.pdf) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/) 
 
 ## Websites
 
