@@ -24,7 +24,8 @@ permalink: "/cv/"
 - [`ibsg`]({{ site.root_url }}/blog/irish-building-stock-generator) - generates a clean Irish residential building stock via an interactive web application.
 - [`dublin-energy-app`]({{ site.root_url }}/blog/dublin-energy-app/) - models retrofit cost, emissions & BER impact on the Dublin building stock via an interactive web application.
 - [`rc-building-model`]({{ site.root_url }}/blog/rc-building-model) - models energy demand for hundreds of thousands of buildings instantaneously via a `Python` library.
-- [MAI thesis]({{ site.root_url }}/blog/energy-modelling) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/) 
+- [MAI thesis]({{ site.root_url }}/blog/energy-modelling) - on modelling the Irish energy system with EnergyPLAN to evaluate potential energy system pathways.  Presented learnings at the [*2019 International Conference on Smart Energy Systems in Copenhagen*](https://smartenergysystems.eu/)
+- [Orangeworks](https://sugar-network.org/projects/) (Innovation in Product Development) - created a laser cut, computer-vision driven tabletop team building platform in collaboration with a team from the University of Sao Paolo. 
 
 ## Websites
 
