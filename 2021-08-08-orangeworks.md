@@ -11,6 +11,6 @@ Weirdly, we first considered remote teams which now seems like a winner.  I beli
 
 It was a laser cut, computer-vision driven tabletop team building platform.  The table used computer-vision to read the objects placed on top of a transparent board and in response adapted the visuals being projected onto it.
 
-![orangeworks.png](https://github.com/rdmolony/rdmolony.github.io/blob/559003b836607fbcae892cce5bff1ace26a15b97/assets/images/orangeworks.png)
+![orangeworks.png](https://raw.githubusercontent.com/rdmolony/rdmolony.github.io/559003b836607fbcae892cce5bff1ace26a15b97/assets/images/orangeworks.png)
 
 <div><a href="https://sugar-network.org/projects/" class="btn btn--primary">Sugar Network</a></div>
