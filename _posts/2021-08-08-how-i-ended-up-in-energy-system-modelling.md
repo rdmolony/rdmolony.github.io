@@ -1,11 +1,8 @@
 ---
-title: "Energy Modelling"
+title: "How I ended up in energy system modelling"
 layout: post
-tags:
-  - link
-  - thesis
-  - EnergyPLAN
 ---
+
 I was first introduced to energy modelling by the late David McKay in his classic book [Sustainable Energy: Without the Hot Air](https://withouthotair.com/).  It uses back-of-the-envelope calculations to guesstimate consumption and production (using 2009 technologies, prices and data), and makes wild assumptions on renewable land usage to try to get them to balance without resorting to fossil fuels.
 
 One year on I found myself struggling to create a reasonably accurate model of the Irish energy system using the [EnergyPLAN](https://www.energyplan.eu/) model for my MAI thesis.  Creating a model whose outputs resemble recorded outputs is tough.  EnergyPLAN is a free model, kindly maintained by Aalborg University researchers.  Bang in some energy system characteristics and it'll spit out emissions and energy usage.  Getting it "accurate" is a data snooping process of trial & error.  I lacked the necessary data to fill in all inputs and so resorted assumptions.  I made roughly 30, documented them and moved on.
@@ -20,4 +17,10 @@ The residential outputs of our bottom-up model rely on the SEAI's `Building Ener
 
 We're getting around this somewhat by serving our models as web applications with parameterisable assumptions.  Where the data is closed-access the code is written (to the best of our knowledge!) so that only the application can access it (by making an authenticated request to `s3` using environmental variables).  The big catch is that even with `streamlit` this all takes time.  Where it isn't possible to bring our work into our applications we're trying to document our assumptions alongside our visualisations so that they don't remain hidden in our source code.
 
-<div><a href="https://github.com/rdmolony/rdmolony.github.io/blob/559003b836607fbcae892cce5bff1ace26a15b97/assets/pdfs/RMolony_MAI_Thesis_2019.pdf" class="btn btn--primary">Thesis</a></div>
+<div>
+  <a href="https://github.com/rdmolony/rdmolony.github.io/blob/559003b836607fbcae892cce5bff1ace26a15b97/assets/pdfs/RMolony_MAI_Thesis_2019.pdf"
+     class="btn btn--primary"
+  >
+    Thesis
+  </a>
+</div>
