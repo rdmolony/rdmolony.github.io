@@ -1,6 +1,6 @@
 ---
 layout: cv
-title: Rowan Molony's CV
+title: CV
 permalink: "/cv/"
 ---
 # Rowan Molony

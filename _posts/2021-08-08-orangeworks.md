@@ -1,6 +1,6 @@
 ---
 title: "Orangeworks"
-category: blog
+layout: post
 tags:
   - link
   - Orangeworks

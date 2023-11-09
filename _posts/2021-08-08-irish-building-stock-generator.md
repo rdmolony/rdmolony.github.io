@@ -1,6 +1,6 @@
 ---
 title: "Irish Building Stock Generator"
-category: blog
+layout: post
 tags:
   - link
 ---

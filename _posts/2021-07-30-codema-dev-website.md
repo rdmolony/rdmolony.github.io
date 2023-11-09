@@ -1,6 +1,6 @@
 ---
 title: "Codema-dev Website"
-category: blog
+layout: post
 tags:
   - link
 ---

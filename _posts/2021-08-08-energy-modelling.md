@@ -1,6 +1,6 @@
 ---
 title: "Energy Modelling"
-category: blog
+layout: post
 tags:
   - link
   - thesis

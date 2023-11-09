@@ -1,6 +1,6 @@
 ---
 title: "Dublin Energy App"
-category: blog
+layout: post
 tags:
   - link
 ---

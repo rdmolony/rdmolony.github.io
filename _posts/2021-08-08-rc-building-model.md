@@ -1,6 +1,6 @@
 ---
 title: "rc-building-model"
-category: blog
+layout: post
 tags:
   - link
   - pandas

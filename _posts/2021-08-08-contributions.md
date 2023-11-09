@@ -1,6 +1,6 @@
 ---
 title: "Open Source Project Contributions"
-permalink: "/contributions/"
+layout: post
 tags:
   - link
   - ploomber
@@ -8,8 +8,6 @@ tags:
   - cityenergyanalyst
   - prefect
   - geopandas
-read_time: false
-excerpt: "A list of open source contributions by repository"
 ---
 
 ## <img src="https://avatars.githubusercontent.com/u/60114551?s=30&v=4"> [ploomber](https://github.com/ploomber/ploomber/issues?q=rdmolony)

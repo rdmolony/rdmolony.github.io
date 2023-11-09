@@ -1,6 +1,6 @@
 ---
 title: "Codema-dev Projects"
-category: blog
+layout: post
 tags:
   - link
   - prefect

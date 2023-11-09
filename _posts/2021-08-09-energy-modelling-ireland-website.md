@@ -1,6 +1,6 @@
 ---
 title: "Energy Modelling Ireland Website"
-category: blog
+layout: post
 tags:
   - link
   - Jekyll
