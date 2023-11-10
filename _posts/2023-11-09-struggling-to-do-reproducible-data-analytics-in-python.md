@@ -1,6 +1,11 @@
 ---
 title: "Struggling to do reproducible data analytics in Python"
 layout: post
+tags:
+ - codema
+ - python
+ - pandas
+ - Docker
 ---
 
 > TL;DR;  Learning how to do arithmetic in `pandas` wasn't hard.  Glueing together a reproducible data pipeline was.  My task wasn't rocket science, but combining `Python` tooling together felt like it.
@@ -23,7 +28,8 @@ Why?
 - [Wrangling data?](#wrangling-data)
 - [Visualising data?](#visualising-data)
 - [Gluing Python functions together?](#gluing-python-functions-together)
-- [Developer environment?](#developer-environment)
+- [Tracking changes?](#tracking-changes)
+- [Sharing a developer environment?](#sharing-a-developer-environment)
 
 
 ---
@@ -64,7 +70,8 @@ This switch didn't come for free.
 It's easy with the benefit of hindsight to see how a wealth of tooling can easily distract from the problem at hand.  How to define good enough?
 
 - Who needs to use the code?  What is reasonable to expect from them?  How to share a cross-platform developer environment they can use?
-- Do we need to "unit test" the `Python` code?  If so,  how do we run the tests on code changes?
+- How do I version the code?
+- Do we need to "unit test" the code?  If so,  how do we run the tests on code changes?
 - How to create an interactive application?  Where should it run?
 
 > Unit tests are code that checks code does what it was designed to do
@@ -191,7 +198,31 @@ I first found `prefect` & really enjoyed the error messages it provided on faili
 ---
 <br>
 
-# Developer environment?
+# Tracking changes?
+
+Now that I was writing "professional" code, I decided that it was no longer sufficient for me to save my source code in `Google Cloud`.  With the power of `git` I could save a message alongside my source code changes to make it easier for me to roll back to prior versions.  Comparatively, in `Google Cloud` I can only rely on timestamps like "March 14, 2022, 7:26 PM".
+
+Simple.  Right?
+
+No.  Not really.  Not at all.
+
+In spite of the fact that `git` is everywhere,  `git` is famously hard to get started with & to mess up.
+
+I just didn't get it.  I struggled to do really simple things.  I wasn't alone - [ohshitgit](https://ohshitgit.com/).
+
+Having said that, it did eventually grow on me after developing a decent mental model thanks to ...
+
+- [`git parable`](https://tom.preston-werner.com/2009/05/19/the-git-parable.html)
+- [learngitbranching.js.org](https://learngitbranching.js.org/)
+- [mhutchie/vscode-git-graph](https://github.com/mhutchie/vscode-git-graph)
+
+... but I would still hesitate to recommend it to newbies unless they are sure that the ends justifies the means.
+
+
+---
+<br>
+
+# Sharing a developer environment?
 
 I couldn't make my mind up on how to share my `Python` environment.  I found `Python` packaging really hard.
 
