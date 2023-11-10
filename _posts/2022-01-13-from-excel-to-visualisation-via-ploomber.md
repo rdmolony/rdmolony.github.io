@@ -3,7 +3,7 @@ title: "From Excel to Visualization via Ploomber"
 layout: post
 ---
 
-> I've since rewritten & expanded upon this experience in [Struggling to do reproducible data analytics in Python](/_posts/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python.md)
+> I've since rewritten & expanded upon this experience in [Struggling to do reproducible data analytics in Python](/blog/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python/)
 
 > This blog post was originally published on [https://ploomber.io/blog/codema/](https://ploomber.io/blog/codema/)
 
