@@ -6,7 +6,7 @@ layout: post
 > TL;DR;  Learning how to do arithmetic in `pandas` wasn't hard.  Glueing together a reproducible data pipeline was.  My task wasn't rocket science, but combining `Python` tooling together felt like it.
 
 
-Over 2019/20 I was at working at `Codema` on the `Dublin Region Energy Masterplan`.  
+Over 2020/21 I was at working at `Codema` on the `Dublin Region Energy Masterplan`.  
 
 I wanted to combine several publicly available datasets to (rudimentarily) estimate Dublin energy demand & visualise some insights.  I wanted anyone to be able to run the models used & challenge the model assumptions.  I wanted the work to be the foundation of more work to come.
 
@@ -18,18 +18,18 @@ Achieving this in practice was hard.
 
 Why?
 
-- [What tools to use?](#what-tools-to-use)
-- [How to automate downloading data?](#how-to-automate-downloading-data)
-- [How to wrangle data?](#how-to-wrangle-data)
-- [How to visualise data?](#how-to-visualise-data)
-- [How to glue together Python functions?](#how-to-glue-together-python-functions)
-- [How to create a reproducible developer environment?](#how-to-create-a-reproducible-developer-environment)
+- [Tools?](#tools)
+- [Downloading data?](#downloading-data)
+- [Wrangling data?](#wrangling-data)
+- [Visualising data?](#visualising-data)
+- [Gluing Python functions together?](#gluing-python-functions-together)
+- [Developer environment?](#developer-environment)
 
 
 ---
 <br>
 
-# What tools to use?
+# Tools?
 
 The prior model had been implemented in `Excel`.  
 
@@ -59,7 +59,9 @@ I landed on `Python` + `pandas` which hit 4, 5 & theoretically 3.  I had no prio
 
 This switch didn't come for free.
 
-`Excel` is constrained.  `Python` isn't.  It's easy with the benefit of hindsight to see how a wealth of tooling can easily distract from the problem at hand.  How to define good enough?
+`Excel` is constrained.  `Python` isn't.  
+
+It's easy with the benefit of hindsight to see how a wealth of tooling can easily distract from the problem at hand.  How to define good enough?
 
 - Who needs to use the code?  What is reasonable to expect from them?  How to share a cross-platform developer environment they can use?
 - Do we need to "unit test" the `Python` code?  If so,  how do we run the tests on code changes?
@@ -69,20 +71,22 @@ This switch didn't come for free.
 
 Contrast that with sharing an `Excel` spreadsheet.  It's easy to use without much prior knowledge & widely available.
 
+Does this power justify the additional complexity?
+
 
 ---
 <br>
 
-# How to automate downloading data?
+# Downloading data?
 
 We were working with several datasets -
 
-- [Building Energy Ratings (BER) - SEAI]() - hidden behind a login
-- [Annual Gas Consumption - Central Statistics Office]() - publicly available
-- [Small Area Census Statistics - Central Statistics Office]() - publicly available
-- [High, Medium & Low Voltage Electricity Grid Map - ESB]() - available upon request
-- [Gas Grid Map - Gas Neworks Ireland]() - available upon request
-- [Dublin County ShapeFile - ?]() - publicly available
+- `Building Energy Ratings (BER) - SEAI` - hidden behind a login
+- `Annual Gas Consumption - Central Statistics Office` - publicly available
+- `Small Area Census Statistics - Central Statistics Office` - publicly available
+- `High, Medium & Low Voltage Electricity Grid Map - ESB` - available upon request
+- `Gas Grid Map - Gas Neworks Ireland` - available upon request
+- `Dublin County ShapeFile - ?]` - publicly available
 - [Emissions Trading Scheme (ETS) Emissions - Environmental Protection Agency]() - publicly available
 
 If I could,  I wanted to automate all data access, but one dataset - the BER dataset - was hidden behind a login.
@@ -110,7 +114,7 @@ A bit simpler.
 ---
 <br>
 
-# How to wrangle data?
+# Wrangling data?
 
 > By "wrangling" I mean loading & combining datasets
 
@@ -137,7 +141,7 @@ This worked fine so long as the combined datasets fit into memory!  If it didn't
 ---
 <br>
 
-# How to visualise data?
+# Visualising data?
 
 Who is the target audience & how will they interact with the data?  Will the visualisations live in `pdfs`, a desktop or web application, or `Jupyter Notebooks`?
 
@@ -162,7 +166,7 @@ I also tried to create a desktop application so we could use the end-user's reso
 ---
 <br>
 
-# How to glue together Python functions?
+# Gluing Python functions together?
 
 To make the whole process reproducible we have to automate downloading, wrangling & visualisation of the datasets.  
 
@@ -187,7 +191,7 @@ I first found `prefect` & really enjoyed the error messages it provided on faili
 ---
 <br>
 
-# How to create a reproducible developer environment?
+# Developer environment?
 
 I couldn't make my mind up on how to share my `Python` environment.  I found `Python` packaging really hard.
 
