@@ -3,7 +3,10 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` (meteorological station managers & energy analysts).
+Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` -
+
+- Meteorological station managers rely on it to monitor the health of their weather stations
+- Energy analysts rely on it to access the latest sensor readings for analysis (wind turbine & solar photovoltaic layouts)
 
 Its job -
 
@@ -15,7 +18,7 @@ Its job -
 
   [^CHI]: The team need to know if the sensors are syncing or if the sensors faulty, so meteorological station managers can go on-site & fix them if needs be.  As well as flagging data quality automatically, it provides a user interface for manually flagging erroneous readings.
 
-- Exploratory `Jupyter Notebook` driven data analysis[^FOO]
+- Exploratory data analysis[^FOO]
   
   [^FOO]: In cases where a particular analysis is not yet well served by 3rd party tooling,  the team uses a shared `Jupyter Notebook` server to explore & visualise data in `Python`
 
@@ -23,36 +26,146 @@ Its core value lies in fetching files from remote sensors, transforming them int
 
 [^CIE]: in most cases a `Windographer` file, a 3rd party tool used to analyze & visualize wind resource data
 
-
 ![sensors-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/sensors-to-useful-files.svg)
 
 
-So how does it work?  And more importantly, how can we ensure that it works?
+Over 2014/15 a brave individual (Paul Hughes) managed to pull the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
 
-> In each section **v1** indicates before my time & **v2** after
+After a year of struggling to keep the show on the road,  I decided to take a plunge & focus solely on rebuilding its foundations.
 
-- [Fetching files from remote sensors](#fetching-files-from-remote-sensors)
-- [Importing sensor files to a database](#importing-sensor-files-to-a-database)
-- [Cleaning sensor readings](#cleaning-sensor-readings)
-- [Accessing data](#accessing-data)
+So how did it work?  Why did I think I should make changes?  What did I do differently to improve it?
+
+
+> I want to thank my manager of the last two years Romain Molins without whose backing none of this would have been possible.
+
+
+- [Getting started](#getting-started)
 - [Handling issues](#handling-issues)
   - [Tests](#tests)
   - [Alerting](#alerting)
-
-
-
-> In 2014/15 a brave individual called Paul Hughes managed to pull the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
-
-> I am grateful for the guidance, support & faith provided by my manager Romain Molins these last two years, & to work with Piotr Szczesniak this last year who will proceed me.
+- [The "old" way](#the-old-way)
+  - [How files **were fetched** from remote sensors](#how-files-were-fetched-from-remote-sensors)
+  - [How sensor files **were imported** to a database](#how-sensor-files-were-imported-to-a-database)
+  - [How sensor readings **were cleaned**](#how-sensor-readings-were-cleaned)
+  - [How sensor readings **were accessed**](#how-sensor-readings-were-accessed)
+- [The "new" way](#the-new-way)
+  - [How files **are now fetched** remote sensors](#how-files-are-now-fetched-remote-sensors)
+  - [How sensor files **are now imported** to a database](#how-sensor-files-are-now-imported-to-a-database)
+  - [How sensor readings **are now cleaned**](#how-sensor-readings-are-now-cleaned)
+  - [How sensor readings **are now accessed**](#how-sensor-readings-are-now-accessed)
+- [Footnotes](#footnotes)
 
 
 ---
 <br>
 
 
-# Fetching files from remote sensors
+# Getting started
 
-**v1** -
+It took me 2-3 months before I was "comfortable" to make a code change -
+
+- The server crashed multiple times a week
+- I couldn't experiment on the code on my laptop because I didn't have a local developer environment
+- Not all `Python` 3rd party libraries - the `Python` environment - in use were documented
+- The code was untested[^CAO]
+- I didn't know `Django` - the `Python` web framework in which the web application was written
+
+[^CAO]: Software tests check that code does what it was designed to do.  They provides software engineers with guard-rails, since if an aspect of a system is well tested then you might find out if your change breaks something before you roll it out.
+
+First up the crashes.
+
+It turns out that the web application was crashing because it was running on `Command Prompt` on a `Windows Virtual Machine` [in which `Quick-Edit Mode` was enabled](https://stackoverflow.com/questions/30418886/how-and-why-does-quickedit-mode-in-command-prompt-freeze-applications) (the default behaviour).  I turned it off & bingo, no more crashes.
+
+After a lot of trial & error, I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (databases & non-`Python` libraries).
+
+[^KOO]: `poetry` is a `Python` library for tracking & managing other 3rd party `Python` libraries.  Sometimes `Python` libraries depend on non-`Python` libraries, which `poetry` by design cannot manage, so one has to resort to something like `Docker` (or `conda` or `nix`)
+
+[^KAA]: `Docker` lets you define an operating system in a configuration file, it can then spin this up in the background & launch your code in it.  If you share the configuration with others they can use it to spin up the same operating system as you.  `Docker Compose` lets you define configuration file in which multiple systems are defined, typically a database & an operating system.  It will spin up all of these systems & link them to one another.
+
+With my new superpower I could now change things.  And so I did.  And something broke.  And so I patched it.  And something broke.
+
+Under pressure to fix bugs, I made changes without first covering the system in tests,  and I suffered for it.
+
+So I paused all code changes and set about covering the most common usage scenarios with tests.
+
+I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium` & setup an automated test "runner" to run these tests before any code change could be accepted via `GitHub Actions`[^PUD].
+
+[^PUD]: `GitHub Actions` lets you define a configuration file which specifies actions (`bash` commands) to run in scenarios like "on receiving proposals for code changes"
+
+I was now somewhat happier to make changes to the web application.
+
+I was still scared, however, to touch the data pipeline - the `Python` glue that transformed raw data into useful file outputs.  I was scared because I couldn't easily test it.  I couldn't be sure that my changes wouldn't break things.  Why?
+
+The web application depended on a database.  To test it,  one has to replace the database with a "test" database & write to the "test" database all data that is required for a particular thing to work before testing it.  This is "okay" to do & well documented since it's standard practice.
+
+The pipeline, however, depended on two different databases (`MySQL` & `Microsoft SQL Server`) on two different servers and on "cache"[^ROL] files -
+
+[^ROL]: If something takes a long time to run & is run multiple times, it is common to cache it to a file or a database & use the cache to skip reruns
+
+
+![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
+
+
+I couldn't for the life of me work out how to replace the second database with a "test" database for testing -
+
+> A magic `Python` class called `StationRaw` glued the system components together.  It connected to the "sensor metadata" database (`MySQL`) via `pandas` using a `Django` connection & the "readings" database (`Microsoft SQL Server`) via `pandas` using a `SQLAlchemy` connection powered by the `pyodbc` engine using a `ODBC Driver for SQL Server 17` driver.  The `SQLAlchemy` connection is stored in the `MySQL` database & fetched on demand via `Django`.  Are you following?!
+
+
+So for a year I (mostly) avoided touching it.
+
+And there certainly were problems.
+
+In one case, we noticed that the "readings" database was missing a few days of readings.  A tool we relied on to import sensor readings files to this database for `Campbell Scientific` loggers (the bulk of our fleet) called `LNDB` wouldn't detect the missing files.
+
+So I had to manually import each file for each gap.
+
+In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version & this update resulted in the data pipeline exporting invalid sensor readings.  It took us a few weeks to notice & luckily had no material impact, but was stressful nonetheless.
+
+And if something didn't work,  the team couldn't do their job.
+
+So after a year of user-facing changes elsewhere in the code & rare patches,  I decided that something had to be done.
+
+
+---
+<br>
+
+
+# Handling issues
+
+Even after a rearchitecture the system was still more complex than I would like.
+
+So good tools for essential for managing this complexity -
+
+## Tests
+
+[Inspired by Harry Percival](https://www.obeythetestinggoat.com/) I setup a `pytest` test suite which grew to hundreds of tests.  Code tests check that code actually does what it was designed to do.
+
+Getting started introducing tests to an untested code base is hard, especially when learning the tooling for the first time.  It's an unreasonable goal (for a human anyway) to aim for covering every class & function with a test,  so I opted first for high-level browser tests & then for lower-level unit tests.
+
+My `Selenium` based browser tests were pretty dumb but effective.  They spin up a browser & click through the website & fail if anything breaks.  The catch is that the test won't normally give you a good reason **why something breaks**, just that it does indeed break.  I created one test per common use case. 
+
+I backed up these browser tests with some fairly dumb unit tests which check a particularly important function or class doesn't break.  These tests don't require a browser & so are much faster to run.  Specifically, they check that given a valid input does the code give me a valid output.
+
+As things break,  one can "catch" the breakage in a unit test, fix the code & then prove it works by passing the test.  As more & more things are fixed the test coverage grows.
+
+**Tests are not everything**.  Breakages can still occur between systems, that won't be caught by tests.  For example,  if the database is setup differently to what the code expects then this will cause issues & won't be necessarily caught.  This is particularly true if rolling out changes isn't automated.
+
+However,  tests do still provide an ease of mind.  I setup the tests to run on every code change via `GitHub Actions` & over time I got more comfortable that code changes were less likely to break things.
+
+## Alerting
+
+Good alerting is particularly important for a data pipeline.  `Workflow Orchestrators` like `ploomber` & `prefect` have gained in popularity for their ability to alert on failure.
+
+If you don't find out about failure quickly your users will.
+
+---
+<br>
+
+
+# The "old" way
+
+
+## How files **were fetched** from remote sensors
 
 For `Campbell Scientific` loggers,  it's quite straightforward[^RAT].  Just install `LoggerNet` on a `Microsoft Windows` server,  configure the loggers & tada the files are fetched & saved to the server.
 
@@ -80,25 +193,12 @@ The `Python` jobs were executed via `Task Scheduler` on the `LoggerNet` server a
 
 [^XOO]: To sync files from one file system to another one needs to know where it is stored on each filesystem!
 
-**v2** -
-
-My changes were small -
-
-- I pulled credentials & file paths into a `TOML` file to keep them outside of source-control & make them easier to edit
-- I adapted the scripts into notebooks to make introspection of code & outputs easier.  Each notebook does one thing[^XAN] & each one is run using [`papermill`](https://github.com/nteract/papermill) via `Task Scheduler`
-
-[^XAN]: One for unzipping, one for decrypting, one for file syncing ...
-
-There wasn't much more to be done here since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
-
 
 ---
 <br>
 
 
-# Importing sensor files to a database
-
-**v1** -
+## How sensor files **were imported** to a database
 
 How to amalgamate all sensor files to one place?
 
@@ -139,65 +239,11 @@ As a nice bonus,  users could then view file import status using the `Django` we
 ![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
 
 
-**v2** -
-
-Now for some heftier changes.
-
-What if instead of storing the readings for each logger in its own table the readings are standardised before storage?
-
-So instead of storing each source in its own table like ...
-
-| timestamp | sensor_name_1 | ... | sensor_name_m |
-| --- | --- | --- | --- |
-| value | value | ... | value |
-
-...
-
-| timestamp | sensor_name_n | ... | sensor_name_m |
-| --- | --- | --- | --- |
-| value | value | ... | value |
-
-... create a single table of sources like ...
-
-| timestamp | sensor_id | value |
-| --- | --- | --- |
-| value | value | value |
-
-... so all readings for all sources can be queried from one place.
-
-Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
-
-[^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will be produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
-
-Yes.  In a traditional relational database like  `Microsoft SQL Server`, `Postgres` or `MySQL` it will be,  since these databases are designed to store & query new entries row by row.
-
-What about timeseries databases?
-
-`TimescaleDB` is a `Postgres` extension that enables working with timeseries readings from within `Postgres`[^NAT].  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT]. 
-
-[^NAT]: It's a very popular database, see [StackOverFlow's 2023 Developer Survey](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-databases)
-[^CAT]: As of 2023-11-20 `TimescaleDB` by default chunks readings in compressed hypertables into intervals of one week so `Postgres` doesn't need to read all rows for queries that only care about a particular period of time, see [Hypertables](https://docs.timescale.com/use-timescale/latest/hypertables/)
-
-I went all in on `TimescaleDB`.
-
-Since `Django` works well with `Postgres` I could also use `TimescaleDB` to store all sensor metadata,  so two databases became one -
-
-
-![loggernet-server-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-timescale-database.svg)
-
-
-This switch didn't come for free since I now need a more intelligent importer for all sources since data needs to be transformed into the right format before storing it,  and this process depends on the source!
-
-Having said that,  I figured the additional complexity on import was worth the cost given that processing logic on this table is now standardised for all sources.
-
-
 ---
 <br>
 
 
-# Cleaning sensor readings
-
-**v1** -
+## How sensor readings **were cleaned**
 
 By default all of the loggers store sensor readings in generic calibrations, so each reading needs to be re-calibrated using its specific calibration before it can be used in analysis.
 
@@ -268,8 +314,96 @@ for sensor in sensor_name_1...sensor_name_n:
     sensor[timestamps] = filter_by_user_flag sensor[timestamps]
 ```
 
-**v2** -
 
+---
+<br>
+
+
+## How sensor readings **were accessed**
+
+<---> TODO <--->
+
+
+---
+<br>
+
+
+# The "new" way
+
+
+## How files **are now fetched** remote sensors
+
+My changes were small -
+
+- I pulled credentials & file paths into a `TOML` file to keep them outside of source-control & make them easier to edit
+- I adapted the scripts into notebooks to make introspection of code & outputs easier.  Each notebook does one thing[^XAN] & each one is run using [`papermill`](https://github.com/nteract/papermill) via `Task Scheduler`
+
+[^XAN]: One for unzipping, one for decrypting, one for file syncing ...
+
+There wasn't much more to be done here since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
+
+
+---
+<br>
+
+
+## How sensor files **are now imported** to a database
+
+Now for some heftier changes.
+
+What if instead of storing the readings for each logger in its own table the readings are standardised before storage?
+
+So instead of storing each source in its own table like ...
+
+| timestamp | sensor_name_1 | ... | sensor_name_m |
+| --- | --- | --- | --- |
+| value | value | ... | value |
+
+...
+
+| timestamp | sensor_name_n | ... | sensor_name_m |
+| --- | --- | --- | --- |
+| value | value | ... | value |
+
+... create a single table of sources like ...
+
+| timestamp | sensor_id | value |
+| --- | --- | --- |
+| value | value | value |
+
+... so all readings for all sources can be queried from one place.
+
+Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
+
+[^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will be produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
+
+Yes.  In a traditional relational database like  `Microsoft SQL Server`, `Postgres` or `MySQL` it will be,  since these databases are designed to store & query new entries row by row.
+
+What about timeseries databases?
+
+`TimescaleDB` is a `Postgres` extension that enables working with timeseries readings from within `Postgres`[^NAT].  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT]. 
+
+[^NAT]: It's a very popular database, see [StackOverFlow's 2023 Developer Survey](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-databases)
+[^CAT]: As of 2023-11-20 `TimescaleDB` by default chunks readings in compressed hypertables into intervals of one week so `Postgres` doesn't need to read all rows for queries that only care about a particular period of time, see [Hypertables](https://docs.timescale.com/use-timescale/latest/hypertables/)
+
+I went all in on `TimescaleDB`.
+
+Since `Django` works well with `Postgres` I could also use `TimescaleDB` to store all sensor metadata,  so two databases became one -
+
+
+![loggernet-server-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-timescale-database.svg)
+
+
+This switch didn't come for free since I now need a more intelligent importer for all sources since data needs to be transformed into the right format before storing it,  and this process depends on the source!
+
+Having said that,  I figured the additional complexity on import was worth the cost given that processing logic on this table is now standardised for all sources.
+
+
+---
+<br>
+
+
+## How sensor readings **are now cleaned**
 
 ![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
 
@@ -402,7 +536,7 @@ I worked out that I could limit the number of connections by routing my `Postgre
 <br>
 
 
-# Accessing data
+## How sensor readings **are now accessed**
 
 Now for the "visible" part, the web application -
 
@@ -420,35 +554,5 @@ If the user wants to access or update data for a particular source,  they can se
 ---
 <br>
 
-# Handling issues
 
-Even after a rearchitecture the system was still more complex than I would like.
-
-So good tools for essential for managing this complexity -
-
-## Tests
-
-[Inspired by Harry Percival](https://www.obeythetestinggoat.com/) I setup a `pytest` test suite which grew to hundreds of tests.  Code tests check that code actually does what it was designed to do.
-
-Getting started introducing tests to an untested code base is hard, especially when learning the tooling for the first time.  It's an unreasonable goal (for a human anyway) to aim for covering every class & function with a test,  so I opted first for high-level browser tests & then for lower-level unit tests.
-
-My `Selenium` based browser tests were pretty dumb but effective.  They spin up a browser & click through the website & fail if anything breaks.  The catch is that the test won't normally give you a good reason **why something breaks**, just that it does indeed break.  I created one test per common use case. 
-
-I backed up these browser tests with some fairly dumb unit tests which check a particularly important function or class doesn't break.  These tests don't require a browser & so are much faster to run.  Specifically, they check that given a valid input does the code give me a valid output.
-
-As things break,  one can "catch" the breakage in a unit test, fix the code & then prove it works by passing the test.  As more & more things are fixed the test coverage grows.
-
-**Tests are not everything**.  Breakages can still occur between systems, that won't be caught by tests.  For example,  if the database is setup differently to what the code expects then this will cause issues & won't be necessarily caught.  This is particularly true if rolling out changes isn't automated.
-
-However,  tests do still provide an ease of mind.  I setup the tests to run on every code change via `GitHub Actions` & over time I got more comfortable that code changes were less likely to break things.
-
-## Alerting
-
-Good alerting is particularly important for a data pipeline.  `Workflow Orchestrators` like `ploomber` & `prefect` have gained in popularity for their ability to alert on failure.
-
-If you don't find out about failure quickly your users will.
-
-<br>
-
----
-<br>
+# Footnotes
