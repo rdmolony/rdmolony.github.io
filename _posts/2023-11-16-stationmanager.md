@@ -40,15 +40,12 @@ So how did it work?  Why did I think I should make changes?  What did I do diffe
 
 
 - [Getting started](#getting-started)
-- [Handling issues](#handling-issues)
-  - [Tests](#tests)
-  - [Alerting](#alerting)
-- [The "old" way](#the-old-way)
+- [The "old" way -](#the-old-way--)
   - [How files **were fetched** from remote sensors](#how-files-were-fetched-from-remote-sensors)
   - [How sensor files **were imported** to a database](#how-sensor-files-were-imported-to-a-database)
   - [How sensor readings **were cleaned**](#how-sensor-readings-were-cleaned)
   - [How sensor readings **were accessed**](#how-sensor-readings-were-accessed)
-- [The "new" way](#the-new-way)
+- [The "new" way -](#the-new-way--)
   - [How files **are now fetched** remote sensors](#how-files-are-now-fetched-remote-sensors)
   - [How sensor files **are now imported** to a database](#how-sensor-files-are-now-imported-to-a-database)
   - [How sensor readings **are now cleaned**](#how-sensor-readings-are-now-cleaned)
@@ -110,6 +107,9 @@ I couldn't for the life of me work out how to replace the second database with a
 
 > A magic `Python` class called `StationRaw` glued the system components together.  It connected to the "sensor metadata" database (`MySQL`) via `pandas` using a `Django` connection & the "readings" database (`Microsoft SQL Server`) via `pandas` using a `SQLAlchemy` connection powered by the `pyodbc` engine using a `ODBC Driver for SQL Server 17` driver.  The `SQLAlchemy` connection is stored in the `MySQL` database & fetched on demand via `Django`.  Are you following?!
 
+And this "glue" code was only the tip of the iceberg.
+
+It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the "timeseries" database,  any of which going wrong caused issues downstream.
 
 So for a year I (mostly) avoided touching it.
 
@@ -130,68 +130,47 @@ So after a year of user-facing changes elsewhere in the code & rare patches,  I 
 <br>
 
 
-# Handling issues
-
-Even after a rearchitecture the system was still more complex than I would like.
-
-So good tools for essential for managing this complexity -
-
-## Tests
-
-[Inspired by Harry Percival](https://www.obeythetestinggoat.com/) I setup a `pytest` test suite which grew to hundreds of tests.  Code tests check that code actually does what it was designed to do.
-
-Getting started introducing tests to an untested code base is hard, especially when learning the tooling for the first time.  It's an unreasonable goal (for a human anyway) to aim for covering every class & function with a test,  so I opted first for high-level browser tests & then for lower-level unit tests.
-
-My `Selenium` based browser tests were pretty dumb but effective.  They spin up a browser & click through the website & fail if anything breaks.  The catch is that the test won't normally give you a good reason **why something breaks**, just that it does indeed break.  I created one test per common use case. 
-
-I backed up these browser tests with some fairly dumb unit tests which check a particularly important function or class doesn't break.  These tests don't require a browser & so are much faster to run.  Specifically, they check that given a valid input does the code give me a valid output.
-
-As things break,  one can "catch" the breakage in a unit test, fix the code & then prove it works by passing the test.  As more & more things are fixed the test coverage grows.
-
-**Tests are not everything**.  Breakages can still occur between systems, that won't be caught by tests.  For example,  if the database is setup differently to what the code expects then this will cause issues & won't be necessarily caught.  This is particularly true if rolling out changes isn't automated.
-
-However,  tests do still provide an ease of mind.  I setup the tests to run on every code change via `GitHub Actions` & over time I got more comfortable that code changes were less likely to break things.
-
-## Alerting
-
-Good alerting is particularly important for a data pipeline.  `Workflow Orchestrators` like `ploomber` & `prefect` have gained in popularity for their ability to alert on failure.
-
-If you don't find out about failure quickly your users will.
-
----
-<br>
-
-
-# The "old" way
+# The "old" way -
 
 
 ## How files **were fetched** from remote sensors
-
-For `Campbell Scientific` loggers,  it's quite straightforward[^RAT].  Just install `LoggerNet` on a `Microsoft Windows` server,  configure the loggers & tada the files are fetched & saved to the server.
-
-[^RAT]: At least from a software engineer's perspective, installing loggers & configuring `LoggerNet` is not something I have experience with
-
-`LoggerNet` only works with `Campbell Scientific` loggers.
-
-What about the other loggers?
-
-Remote sensors are normally in deserts so connecting to them is not cheap or easy.
-
-So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from loggers to a remote filesystem,  which then need to be synced to the `LoggerNet` server.
-
-So a `Python` job was created to automatically sync the two filesystems via `SFTP` (i.e. Secure File Transfer Protocol).
-
-These files are normally compressed & encrypted.  To process them,  they must first be standardised to text files.
-
-So a `Python` job was created to automatically unzip & decrypt files.
 
 
 ![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
 
 
-The `Python` jobs were executed via `Task Scheduler` on the `LoggerNet` server as `Python` scripts in which credentials & file paths[^XOO] were hard-coded.
+To fetch files from loggers manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
 
-[^XOO]: To sync files from one file system to another one needs to know where it is stored on each filesystem!
+[^RAT]: At least from a software engineer's perspective, installing loggers & configuring `LoggerNet` is not something I have experience with
+
+- Install their `LoggerNet` software on a `Microsoft Windows` server
+- Configure the loggers in `LoggerNet`
+
+... & tada, the files are fetched & saved to the `Microsoft Windows` server.
+
+But what about the non-`Campbell Scientific` loggers?
+
+We didn't have an equivalent software.
+
+So we built our own.
+
+Remote sensors are normally in deserts so connecting to them is not cheap or easy.
+
+So we hired a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), to sync files from our loggers to their cloud-based filesystem.
+
+How to sync to the same server as the other files?
+
+We created a `Python` job was to sync the two via `SFTP` (or `Secure File Transfer Protocol`).
+
+These files are normally compressed & encrypted.
+
+How to standardise these files?
+
+We created another `Python` job was to automatically unzip via `7zip` & decrypt them using `ZPH2CSV.exe` where relevant.
+
+How to schedule the jobs?
+
+In `Task Scheduler` on the `LoggerNet` server, we added a `batchfile` specifying the `Python` scripts to run & when to run them.
 
 
 ---
@@ -328,10 +307,14 @@ for sensor in sensor_name_1...sensor_name_n:
 <br>
 
 
-# The "new" way
+# The "new" way -
 
 
 ## How files **are now fetched** remote sensors
+
+ in which credentials & file paths[^XOO] were hard-coded.
+
+[^XOO]: To sync files from one file system to another one needs to know where it is stored on each filesystem!
 
 My changes were small -
 
