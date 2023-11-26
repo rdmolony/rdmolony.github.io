@@ -41,8 +41,8 @@ So how did it work?  Why did I think I should make changes?  What did I do diffe
 
 - [Getting started](#getting-started)
 - [The "old" way -](#the-old-way--)
-  - [How files **were fetched** from remote sensors](#how-files-were-fetched-from-remote-sensors)
-  - [How sensor files **were imported** to a database](#how-sensor-files-were-imported-to-a-database)
+  - [How files **were fetched** from remote loggers](#how-files-were-fetched-from-remote-loggers)
+  - [How logger files **were imported** to a database](#how-logger-files-were-imported-to-a-database)
   - [How sensor readings **were cleaned**](#how-sensor-readings-were-cleaned)
   - [How sensor readings **were accessed**](#how-sensor-readings-were-accessed)
 - [The "new" way -](#the-new-way--)
@@ -103,9 +103,7 @@ The pipeline, however, depended on two different databases (`MySQL` & `Microsoft
 ![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
 
 
-I couldn't for the life of me work out how to replace the second database with a "test" database for testing -
-
-> A magic `Python` class called `StationRaw` glued the system components together.  It connected to the "sensor metadata" database (`MySQL`) via `pandas` using a `Django` connection & the "readings" database (`Microsoft SQL Server`) via `pandas` using a `SQLAlchemy` connection powered by the `pyodbc` engine using a `ODBC Driver for SQL Server 17` driver.  The `SQLAlchemy` connection is stored in the `MySQL` database & fetched on demand via `Django`.  Are you following?!
+I couldn't for the life of me work out how to replace the second database with a "test" database to test this "glue" code (discussed later).
 
 And this "glue" code was only the tip of the iceberg.
 
@@ -133,7 +131,7 @@ So after a year of user-facing changes elsewhere in the code & rare patches,  I 
 # The "old" way -
 
 
-## How files **were fetched** from remote sensors
+## How files **were fetched** from remote loggers
 
 
 ![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
@@ -150,46 +148,28 @@ To fetch files from loggers manufactured by `Campbell Scientific`,  it's quite s
 
 But what about the non-`Campbell Scientific` loggers?
 
-We didn't have an equivalent software.
+An equivalent tool was custom built in `Python` -
 
-So we built our own.
+Remote sensors are normally in deserts so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the loggers to their cloud-based filesystem, and a `Python` job to transfer them to the same server as the other files was created.
 
-Remote sensors are normally in deserts so connecting to them is not cheap or easy.
+These files are normally compressed & encrypted.  So another `Python` job was built to automatically unzip via `7zip` & decrypt them using `ZPH2CSV.exe` where relevant.
 
-So we hired a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), to sync files from our loggers to their cloud-based filesystem.
-
-How to sync to the same server as the other files?
-
-We created a `Python` job was to sync the two via `SFTP` (or `Secure File Transfer Protocol`).
-
-These files are normally compressed & encrypted.
-
-How to standardise these files?
-
-We created another `Python` job was to automatically unzip via `7zip` & decrypt them using `ZPH2CSV.exe` where relevant.
-
-How to schedule the jobs?
-
-In `Task Scheduler` on the `LoggerNet` server, we added a `batchfile` specifying the `Python` scripts to run & when to run them.
+These jobs need to be run periodically.  So a `batchfile` specifying the `Python` jobs was scheduled in `Task Scheduler` on the same server as `LoggerNet`.
 
 
 ---
 <br>
 
 
-## How sensor files **were imported** to a database
+## How logger files **were imported** to a database
 
-How to amalgamate all sensor files to one place?
 
-One could -
+![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
 
-1. Use a library that can read from multiple files each time the files are processed
-2. Create a file of files which copies all files to one place
-3. Import the readings from each file to a database table
 
-`Campbell Scientific` provide an application called `LNDB` which automatically exports sensor readings to database tables,  so it makes sense that the original creator opted for option 3 using the `Microsoft SQL Server` database.
+Most logger files only contain readings for a few days,  so all files associated with a particular logger need to be amalgamated.
 
-Each logger gets its own database table which look like ...
+`Campbell Scientific` provide an application called `LNDB` which automatically exports logger readings to database tables.  Each database table contains all readings for a particular logger & look like ...
 
 | timestamp | sensor_name_1 | ... | sensor_name_n |
 | --- | --- | --- | --- |
@@ -197,25 +177,18 @@ Each logger gets its own database table which look like ...
 
 What about the other loggers?
 
-No off-the-shelf tool existed.  So `Python` to the rescue.
+Again, a custom equivalent was built in `Python` -
 
-Reading text files & importing them to a database table is surprisingly hard -
+Reading text files & importing them to a database table is surprisingly hard:
 
-- If it includes metadata, it needs to be skipped
-- If it isn't encoded in `utf-8`, it needs to be specified as this is hard to infer
-- If it includes a column of timestamp strings, these need to be standardised
-- If it contains a column that does not exist in the corresponding database table, the database table needs to be edited to include it
+- Are the first few lines metadata?
+- What columns represent timestamps?  How are they formatted?
+- How is it encoded?
+- Are there columns in the file that are not reflected in the database?
 
-Each type of logger has its own conventions so each type necessitated its own `Python` file importer.
+Each type of logger has its own conventions. 
 
-How to track which file has been imported & which has not?
-
-Another database, a sensor metadata database, was linked to the `Python` job to track imports.
-
-As a nice bonus,  users could then view file import status using the `Django` web-based user interface (discussed later) since it is connected to this database.
-
-
-![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
+So the custom `Python` file importer baked in the conventions of each type of logger.  It also tracked which files have been imported & which have not in the "metadata" database.
 
 
 ---
@@ -238,60 +211,26 @@ Sometimes there are issues with a sensor, so its readings are not valid & need t
 
 How to re-calibrate & clean millions of readings?
 
-`pandas`
-
-> `pandas` is a `Python` library for reading, manipulating & writing data.
-
-This one's hairy.
+This one's a bit hairy.
 
 
 ![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
 
 
-`Task Scheduler` periodically runs a job in which all timeseries operational stations are updated -
+`Task Scheduler` periodically runs a `batchfile` which specifies a `Python` job to generate a "clean" file of sensor readings for each operational station -
 
-1. `pandas` asks the timeseries database for readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
-2. `pandas` asks the sensor metadata database for sensor metadata & user-specified erroneous reading timestamps via `SQLAlchemy` (powered by `mysqlclient`)
-3. `pandas` caches readings to a `pickle` file to skip trips to the timeseries database if specified
-4. `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified "flags"
+- `pandas` asks the "sensor metadata" database for connection strings to the "readings" database, sensor metadata & user-specified erroneous reading timestamps via `Django` (powered by `mysqlclient`)
+- `pandas` asks the timeseries database for readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
+- `pandas` caches readings to a `pickle` file to skip trips to the timeseries database if specified
+- `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified "flags"
 
-It's hard to test this glue since it depends on two databases & cache files.  It's also tricky managing the database connections[^TAD].
+This is all glued together by a magic `Python` class called `StationRaw`.
 
-[^TAD]: The connections to the timeseries database are stored in the sensor metadata database ...
+Are you following?!
 
-Re-calibrating & flagging the readings in a format like ...
+I found it next to impossible to test this glue.
 
-| timestamp | sensor_name_1 | ... | sensor_name_n |
-| --- | --- | --- | --- |
-| value | value | ... | value |
-
-... is surprisingly difficult since each column name is also data - it implies what type of sensor the column of data represents.
-
-So if one has to thread carefully to process it -
-
-```ruby
-# sensor looks like timestamp_1=value, ...
-for sensor in sensor_name_1...sensor_name_n:
-
-  # If a sensor has been replaced
-  # then `pandas` must apply different calibrations 
-  # to different timestamp ranges
-  for timestamps, recalibrate in calibrations[sensor]:
-    sensor[timestamps] = recalibrate sensor[timestamps]
-
-  # Flag rules differ depending on the type of data -
-  # a very large or very small wind speed reading will differ
-  # from a very large battery voltage
-  for flag_rule in flag_rules[sensor]:
-    for filter_by_flag_rule in flag_rule:
-      sensor = filter_by_flag_rule sensor
-
-  # User "flags" specify that say a wind speed sensor was dodgy
-  # for a few days as it was broken so only apply to some columns
-  # for some timestamps
-  for timestamps, filter_by_user_flag in user_flags[sensor]:
-    sensor[timestamps] = filter_by_user_flag sensor[timestamps]
-```
+So I rolled out some very inadequate tests that checked aspects of it and moved on.
 
 
 ---
@@ -300,7 +239,7 @@ for sensor in sensor_name_1...sensor_name_n:
 
 ## How sensor readings **were accessed**
 
-<---> TODO <--->
+
 
 
 ---
@@ -388,8 +327,43 @@ Having said that,  I figured the additional complexity on import was worth the c
 
 ## How sensor readings **are now cleaned**
 
+
 ![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
 
+
+Re-calibrating & flagging sensor readings in a format like ...
+
+| timestamp | sensor_name_1 | ... | sensor_name_n |
+| --- | --- | --- | --- |
+| value | value | ... | value |
+
+... is surprisingly difficult since each column name is also data - it implies what type of sensor the column of data represents.
+
+So if one has to thread carefully to process it -
+
+```ruby
+# sensor looks like timestamp_1=value, ...
+for sensor in sensor_name_1...sensor_name_n:
+
+  # If a sensor has been replaced
+  # then `pandas` must apply different calibrations 
+  # to different timestamp ranges
+  for timestamps, recalibrate in calibrations[sensor]:
+    sensor[timestamps] = recalibrate sensor[timestamps]
+
+  # Flag rules differ depending on the type of data -
+  # a very large or very small wind speed reading will differ
+  # from a very large battery voltage
+  for flag_rule in flag_rules[sensor]:
+    for filter_by_flag_rule in flag_rule:
+      sensor = filter_by_flag_rule sensor
+
+  # User "flags" specify that say a wind speed sensor was dodgy
+  # for a few days as it was broken so only apply to some columns
+  # for some timestamps
+  for timestamps, filter_by_user_flag in user_flags[sensor]:
+    sensor[timestamps] = filter_by_user_flag sensor[timestamps]
+```
 
 It's shockingly easier to work with the data once it's reformatted to a "tidier"[^ROR] format ...
 
@@ -494,10 +468,6 @@ https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-que
 
 How to export multiple sources in parallel?
 
-A task queue.
-
-A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
-
 Previously each set of readings was processed one by one & only two types of "useful" output file was produced per source.  Now 10 timeseries output files are produced per source,  & producing each one is slower.  With some parallel processing this becomes more manageable.
 
 Managing database & task worker resource usage is hard.
@@ -521,17 +491,30 @@ I worked out that I could limit the number of connections by routing my `Postgre
 
 ## How sensor readings **are now accessed**
 
+
+
 Now for the "visible" part, the web application -
 
 ![useful-files-to-user.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user.svg)
 
-If the user wants to access or update data for a particular source,  they can search for the source in the web application & from there they can -
+If the people want to access or update data for a particular source,  they can search for the source in the web application & from there they can -
 
+- Access "useful" timeseries files of sensor readings
 - Change the calibrations for a particular source's sensor
 - Flag erroneous readings graphically
-- Manually refresh a "useful" export file[^KUD]
+- Manually refresh a "useful" export file
 
-[^KUD]: Their request is added to the task queue which is then processed by a worker when it has time to do so.  They might wish to do so if the calibrations of a station have changed or if a new "flags" marking erroneous readings have been added more recently than the most recent source cache.
+The web application is built using the `Django` web framework.
+
+For most requests to the web application it doesn't need to do much work.  To display a requested web page It merely has to either ask the database for the data it needs to display the web page they have asked for (`HTML`, `CSS` & `JavaScript`) or `NGINX` for files.
+
+For long-running requests like refreshing a file export,  a task queue is used.
+
+> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
+
+
+
+Their request is added to the task queue which is then processed by a worker when it has time to do so.  They might wish to do so if the calibrations of a station have changed or if a new "flags" marking erroneous readings have been added more recently than the most recent source cache.
 
 
 ---
