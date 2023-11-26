@@ -1,9 +1,10 @@
 ---
-title: "Pluto.jl Notebooks - First Impression"
+title: "Elixir Livebook Notebooks - First Impression"
 layout: post
 tags:
  - elixir
  - notebooks
+published: false
 ---
 
 - Smart cells
