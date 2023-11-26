@@ -90,4 +90,12 @@ Agent.get(agent, fn list -> list end)
 
 So in this case the agent doesn't seem to actually store anything but rather calls the function when it's sent a message?
 
+I can update the function run by the agent so that it appends `0` to a list ...
+
+```elixir
+Agent.update(agent, fn list -> [0 | list] end)
+Agent.get(agent, fn list -> list end)
+```
+
+Nice.  But now if the `Agent` needs `list` to evaluate `[0 | list]` then where does `list` come from?   Why does `Agent` now return `[0]` if I am not defining an empty list anywhere?
 
