@@ -113,4 +113,4 @@ Okay,  so perhaps I can consider mutating the state on a process to the same as 
 
 Why is this any better?
 
-
+Again more jargon,  "arity" for the number of arguments to pass to a function.
