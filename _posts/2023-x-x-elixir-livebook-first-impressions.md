@@ -99,3 +99,18 @@ Agent.get(agent, fn list -> list end)
 
 Nice.  But now if the `Agent` needs `list` to evaluate `[0 | list]` then where does `list` come from?   Why does `Agent` now return `[0]` if I am not defining an empty list anywhere?
 
+I asked `ChatGPT4` ...
+
+> With `Agent.update`, you send a message to the agent's process to update its state. The function `fn list -> [0 | list] end` takes the current state of the agent (`list`) and returns a new state with `0` prepended to it. After this operation, the state of the agent becomes `[0]`.
+
+Hmmm.
+
+What if the process is killed?  Does the process store state in its memory or does it run instructions to generate state when asked to do so?
+
+> When an Elixir process, such as an Agent, is killed, the state it holds in memory is lost. This is because Elixir (and the Erlang VM it runs on) primarily uses in-memory storage for processes. 
+
+Okay,  so perhaps I can consider mutating the state on a process to the same as mutating an object in an `Object Oriented` language like `Python`.
+
+Why is this any better?
+
+
