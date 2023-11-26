@@ -52,4 +52,4 @@ tags:
 
   ... `2 + 2` is compared against the expected output `5` & a warning is raised since the output should be `4`!
 
-  This is **really neat**.  It's really helpful to see examples of code in use in learning how to use functions,  & now not only do I not need to bother writing a test,  I'm encouraged to document my code properly!
+  This is **really neat**.  When learning how to use a particular function it's really helpful to see examples,  & now not only do I not need to bother writing a test,  I'm encouraged to provide them!
