@@ -23,3 +23,33 @@ tags:
 - Automatic syncing between cells
 
   By default, `Livebook` doesn't sync between cells but rather marks cells as "stale" or "active" depending on whether or not the cell they depend upon has changed.  I wonder if I can opt in to automatic re-runs of "stale" cells?
+
+- Getting Started
+
+  The `Getting Started` notebook was easy for me to run, understand & use - 
+
+  ![livebook-home-page.png](/assets/images/livebook-home-page.png)
+
+  ![welcome-to-livebook.png](/assets/images/welcome-to-livebook.png) 
+
+  I was particularly impressed by `Doctests` which use a code's documentation as unit tests.
+
+  In the following example ...
+
+  ```elixir
+  defmodule MyModule do
+    @moduledoc """
+    This is an example of doctests:
+
+        iex> 2 + 2
+        5
+
+        iex> 6 + 7
+        13
+    """
+  end
+  ```
+
+  ... `2 + 2` is compared against the expected output `5` & a warning is raised since the output should be `4`!
+
+  This is **really neat**.  It's really helpful to see examples of code in use in learning how to use functions,  & now not only do I not need to bother writing a test,  I'm encouraged to document my code properly!
