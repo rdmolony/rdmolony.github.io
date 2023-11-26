@@ -53,3 +53,20 @@ tags:
   ... `2 + 2` is compared against the expected output `5` & a warning is raised since the output should be `4`!
 
   This is **really neat**.  When learning how to use a particular function it's really helpful to see examples,  & now not only do I not need to bother writing a test,  I'm encouraged to provide them!
+
+  Next up I tried `Distributed portals with Elixir`.
+
+  I really like the idea of using an interactive game to teach new concepts.  The game this example is modelled on is a classic which I had the pleasure of playing with a buddy on `PlayStation 3`.
+
+  I'm not sure, however, what's the right balance between "let's do something cool" & incidentally "here's how it works" and explaining something up front.
+
+  I've read up a bit around `Elixir` already so am a bit familiar, but even for me it was hard to get my head around the concepts & jargon -
+
+  - Pattern matching
+  - Anonymous functions
+  - Immutable data structures
+  - Processes
+  - Agents
+  - State
+
+  I do care but I could also see others not caring about these nuances. 
