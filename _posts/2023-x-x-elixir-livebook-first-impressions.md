@@ -114,3 +114,5 @@ Okay,  so perhaps I can consider mutating the state on a process to the same as 
 Why is this any better?
 
 Again more jargon,  "arity" for the number of arguments to pass to a function.
+
+Accessing an `Agent` state feels a little like my brief stint in `C++` where I had to define `get` and `set` to access & change an object's state.
