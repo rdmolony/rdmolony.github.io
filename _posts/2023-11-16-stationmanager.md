@@ -79,7 +79,9 @@ First up the crashes.
 
 It turns out that the web application was crashing because it was running on `Command Prompt` on a `Windows Virtual Machine` [in which `Quick-Edit Mode` was enabled](https://stackoverflow.com/questions/30418886/how-and-why-does-quickedit-mode-in-command-prompt-freeze-applications) (the default behaviour).  I turned it off & bingo, no more crashes.
 
-After a lot of trial & error, I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (databases & non-`Python` libraries).
+I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else like databases & non-`Python` libraries.
+
+> Later when `Docker` refused to run on my machine due to "networking" issues,  I was forced to rebuild this developer environment in `nix` via [`devenv.sh`](https://devenv.sh/).
 
 [^KOO]: `poetry` is a `Python` library for tracking & managing other 3rd party `Python` libraries.  Sometimes `Python` libraries depend on non-`Python` libraries, which `poetry` by design cannot manage, so one has to resort to something like `Docker` (or `conda` or `nix`)
 
@@ -87,19 +89,24 @@ After a lot of trial & error, I managed to setup a reproducible developer enviro
 
 With my new superpower I could now change things.  And so I did.  And something broke.  And so I patched it.  And something broke.
 
-Under pressure to fix bugs, I made changes without first covering the system in tests,  and I suffered for it.
+Under pressure to fix bugs, I made changes without first covering the system in tests[^QIO],  and I suffered for it.
 
-So I paused all code changes and set about covering the most common usage scenarios with tests.
+So I paused all code changes and set about testing the most common usage scenarios.
 
-I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium` & setup an automated test "runner" to run these tests before any code change could be accepted via `GitHub Actions`[^PUD].
+I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium`, and I automated running this bot automatically before any code change could be accepted via `GitHub Actions`[^PUD] which thanks to the `Docker`[^KAA] work was relatively straightforward.
 
 [^PUD]: `GitHub Actions` lets you define a configuration file which specifies actions (`bash` commands) to run in scenarios like "on receiving proposals for code changes"
 
 I was now somewhat happier to make changes to the web application.
 
-I was still scared, however, to touch the data pipeline - the `Python` glue that transformed raw data into useful file outputs.  I was scared because I couldn't easily test it.  I couldn't be sure that my changes wouldn't break things.  Why?
+I was still scared, however, to touch the data pipeline - the `Python` glue that transformed raw data into useful file outputs.  I was scared because I couldn't easily test it so I couldn't be sure that my changes wouldn't break things.  Why?
 
-The web application depended on a database.  To test it,  one has to replace the database with a "test" database & write to the "test" database all data that is required for a particular thing to work before testing it.  This is "okay" to do & well documented since it's standard practice.
+This web application depends on a database, so before testing a particular thing one has to -
+
+- Replace the database with a "test" database
+- Write to the "test" database all data that is required for the thing to work
+
+This is "okay" to do & well documented online since it's standard practice.
 
 The pipeline, however, depended on two different databases (`MySQL` & `Microsoft SQL Server`) on two different servers and on "cache"[^ROL] files -
 
@@ -115,19 +122,19 @@ And this "glue" code was only the tip of the iceberg.
 
 It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the "timeseries" database,  any of which going wrong caused issues downstream.
 
-So for a year I (mostly) avoided touching it.
+So for a year I (mostly) avoided touching this.
 
 And there certainly were problems.
 
-In one case, we noticed that the "readings" database was missing a few days of readings.  A tool we relied on to import sensor readings files to this database for `Campbell Scientific` loggers (the bulk of our fleet) called `LNDB` wouldn't detect the missing files.
+In one case, a tool that fetches files of sensor readings from remote sensors (`LoggerNet`) went down for a few days.  Upon restoring it we noticed that the "readings" database was missing a few days of readings, and the tool that imports these files to this database (`LNDB`) refused to backfill these missing readings.
 
 So I had to manually import each file for each gap.
 
-In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version & this update resulted in the data pipeline exporting invalid sensor readings.  It took us a few weeks to notice & luckily had no material impact, but was stressful nonetheless.
+In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version.  This update resulted in invalid sensor readings being exported from the system to analysts.  It took us a few weeks to notice & luckily had no impact, but was stressful nonetheless.
 
-And if something didn't work,  the team couldn't do their job.
+If something doesn't work,  this team can't do their job.
 
-So after a year of user-facing changes elsewhere in the code & rare patches,  I decided that something had to be done.
+So eventually I decided that something had to be done ...
 
 
 ---
