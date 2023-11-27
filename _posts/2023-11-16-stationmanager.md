@@ -243,6 +243,34 @@ I found it next to impossible to fully test this glue.   I had some success usin
 ## How sensor readings **were accessed**
 
 
+Now for the "visible" part, the web application -
+
+![useful-files-to-user-directly.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-directly.svg)
+
+If the people want to access or update data for a particular source,  they can search for the source in the web application & from there they can -
+
+- Access "useful" timeseries files of sensor readings
+- Change the calibrations for a particular source's sensor
+- Flag erroneous readings graphically
+- Manually refresh a "useful" export file
+
+The web application is built using the `Django` web framework.
+
+For most requests to the web application it doesn't need to do much work -
+
+- To display a web page it asks the database for the data it needs to display it (`HTML`, `CSS` & `JavaScript`) & enriches them with this data
+- To serve "static" files like images or `csv` text files it shares them directly via `NGINX`
+
+Refreshing a "useful" file of sensor readings requires much more time to run.
+
+When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) to generate this file.
+
+So I created a periodic `Python` job to pre-generate these "useful" files for users, so this wait time could be skipped -
+
+
+![useful-files-to-user-via-database-entry.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-database-entry.svg)
+
+One could click a "Manual Refresh" button to save a "flag" to the database marking the file to be re-generated the next time a job was run.  This job could only process one file at a time.
 
 
 ---
@@ -496,9 +524,9 @@ I worked out that I could limit the number of connections by routing my `Postgre
 
 
 
-Now for the "visible" part, the web application -
+Now once again for the "visible" part, the web application -
 
-![useful-files-to-user.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user.svg)
+![useful-files-to-user-via-task-queue.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-task-queue.svg)
 
 If the people want to access or update data for a particular source,  they can search for the source in the web application & from there they can -
 
