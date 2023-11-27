@@ -5,9 +5,6 @@ layout: post
 
 Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` -
 
-- Meteorological station managers rely on it to monitor the health of their weather stations
-- Energy analysts rely on it to access the latest sensor readings for analysis (wind turbine & solar photovoltaic layouts)
-
 Its job -
 
 - Data Access[^RAB]
@@ -22,6 +19,7 @@ Its job -
   
   [^FOO]: In cases where a particular analysis is not yet well served by 3rd party tooling,  the team uses a shared `Jupyter Notebook` server to explore & visualise data in `Python`
 
+
 Its core value lies in fetching files from remote sensors, transforming them into useful file outputs[^CIE] -
 
 [^CIE]: in most cases a `Windographer` file, a 3rd party tool used to analyze & visualize wind resource data
@@ -29,7 +27,7 @@ Its core value lies in fetching files from remote sensors, transforming them int
 ![sensors-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/sensors-to-useful-files.svg)
 
 
-Over 2014/15 a brave individual (Paul Hughes) managed to pull the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
+Over 2014/15 a brave individual (Paul Hughes) pulled the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
 
 After a year of struggling to keep the show on the road,  I decided to take a plunge & focus solely on rebuilding its foundations.
 
