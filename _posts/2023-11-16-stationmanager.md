@@ -29,9 +29,16 @@ Its core value lies in fetching files from remote sensors, transforming them int
 
 Over 2014/15 a brave individual (Paul Hughes) pulled the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
 
-After a year of struggling to keep the show on the road,  I decided to take a plunge & focus solely on rebuilding its foundations.
+After a year of struggling to keep the show on the road,  I spent a year rebuilding its foundations -
 
-So how did it work?  Why did I think I should make changes?  What did I do differently to improve it?
+- I brought an untested data pipeline under test[^QIO]
+- I merged five ways of getting data into the system into one
+- I merged two databases with one
+- I replaced ~25,000 lines of code with ~1,000 lines
+
+[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to checking the code ingesting, transforming & saving data **because the system was too hard to test**.
+
+So how did it work?  And what did I do differently?
 
 
 > I want to thank my manager of the last two years Romain Molins without whose backing none of this would have been possible.
@@ -60,10 +67,11 @@ So how did it work?  Why did I think I should make changes?  What did I do diffe
 It took me 2-3 months before I was "comfortable" to make a code change -
 
 - The server crashed multiple times a week
-- I couldn't experiment on the code on my laptop because I didn't have a local developer environment
-- Not all `Python` 3rd party libraries - the `Python` environment - in use were documented
+- I couldn't run the code on my laptop because I didn't have a local developer environment
+- Not all dependencies (`Python` & non-`Python` 3rd party libraries) in use were documented
 - The code was untested[^CAO]
-- I didn't know `Django` - the `Python` web framework in which the web application was written
+- I didn't know the `Python` web framework in which the web application was written (`Django`)
+- I didn't know anything about relational databases which the web application relies on to store data
 
 [^CAO]: Software tests check that code does what it was designed to do.  They provides software engineers with guard-rails, since if an aspect of a system is well tested then you might find out if your change breaks something before you roll it out.
 
