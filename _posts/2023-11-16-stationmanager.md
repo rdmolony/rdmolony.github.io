@@ -282,18 +282,11 @@ One could click a "Manual Refresh" button to save a "flag" to the database marki
 
 ## How files **are now fetched** remote sensors
 
- in which credentials & file paths[^XOO] were hard-coded.
+![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
 
-[^XOO]: To sync files from one file system to another one needs to know where it is stored on each filesystem!
+There wasn't much more to be done here other than some housekeeping[^RAA] since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
 
-My changes were small -
-
-- I pulled credentials & file paths into a `TOML` file to keep them outside of source-control & make them easier to edit
-- I adapted the scripts into notebooks to make introspection of code & outputs easier.  Each notebook does one thing[^XAN] & each one is run using [`papermill`](https://github.com/nteract/papermill) via `Task Scheduler`
-
-[^XAN]: One for unzipping, one for decrypting, one for file syncing ...
-
-There wasn't much more to be done here since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
+[^RAA]:  Credentials & file paths[^XOO] were hard-coded into the `Python` job so I pulled them into a `TOML` file to make them easier to edit.  I also adapted the scripts into notebooks, Each notebook does one thing (unzipping, decrypting, file syncing), to make them easier to read & edit
 
 
 ---
