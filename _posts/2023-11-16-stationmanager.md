@@ -157,9 +157,9 @@ But what about the non-`Campbell Scientific` loggers?
 
 An equivalent tool was custom built in `Python` -
 
-Remote sensors are normally in deserts so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the loggers to their cloud-based filesystem, and a `Python` job to transfer them to the same server as the other files was created.
+Remote sensors are normally in deserts so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the loggers to their cloud-based filesystem.  These files still need to be synced from there to the same place as the `LoggerNet` files so a `Python` job was created to do so.
 
-These files are normally compressed & encrypted.  So another `Python` job was built to automatically unzip via `7zip` & decrypt them using `ZPH2CSV.exe` where relevant.
+These files are normally compressed & encrypted.  So another `Python` job was created to automatically unzip them (via `7zip`) & decrypt them (via `ZPH2CSV.exe`) where relevant.
 
 These jobs need to be run periodically.  So a `batchfile` specifying the `Python` jobs was scheduled in `Task Scheduler` on the same server as `LoggerNet`.
 
@@ -174,28 +174,28 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 ![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
 
 
-Most logger files only contain readings for a few days,  so all files associated with a particular logger need to be amalgamated.
+Most logger files only contain readings for at most a few days,  so all files associated with a particular logger need to be amalgamated.
 
-`Campbell Scientific` provide an application called `LNDB` which automatically exports logger readings to database tables.  Each database table contains all readings for a particular logger & look like ...
+`Campbell Scientific` provide an application called `LNDB` which automatically exports logger readings to database tables.  Each database table contains all readings for a particular logger & looks like ...
 
 | timestamp | sensor_name_1 | ... | sensor_name_n |
 | --- | --- | --- | --- |
 | value | value | ... | value |
 
-What about the other loggers?
+Again, what about the other loggers?
 
 Again, a custom equivalent was built in `Python` -
 
-Reading text files & importing them to a database table is surprisingly hard:
+Reading text files & importing them to a database table is surprisingly hard -
 
+- How is it encoded?
 - Are the first few lines metadata?
 - What columns represent timestamps?  How are they formatted?
-- How is it encoded?
-- Are there columns in the file that are not reflected in the database?
+- Are there columns in the file that are not reflected in the database table?  If so,  the database table must be updated!
 
-Each type of logger has its own conventions. 
+`LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.  So the `Python` job had to adapt its database importer to the conventions of each type of logger.  It also tracked which files have been imported & which have not in the "metadata" database.
 
-So the custom `Python` file importer baked in the conventions of each type of logger.  It also tracked which files have been imported & which have not in the "metadata" database.
+> [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange so help relieve this particular burden.
 
 
 ---
@@ -204,7 +204,7 @@ So the custom `Python` file importer baked in the conventions of each type of lo
 
 ## How sensor readings **were cleaned**
 
-By default all of the loggers store sensor readings in generic calibrations, so each reading needs to be re-calibrated using its specific calibration before it can be used in analysis.
+By default all of the loggers store sensor readings in generic calibration, so each reading needs to be re-calibrated using its specific calibration before it can be used in analysis.
 
 > An anemometer measures wind speeds by counting the number of rotations per second or frequency of its spinning cups.  To convert frequency to wind speed we need to know an anemometer's calibration[^XAR].
 
@@ -214,7 +214,7 @@ By default all of the loggers store sensor readings in generic calibrations, so 
 ![anemometer.svg](/assets/images/icons/anemometer.svg){: width="100" }
 
 
-Sometimes there are issues with a sensor, so its readings are not valid & need to be removed.
+Also, sometimes there are issues with a sensor, so its readings are not valid & need to be removed.
 
 How to re-calibrate & clean millions of readings?
 
@@ -227,17 +227,13 @@ This one's a bit hairy.
 `Task Scheduler` periodically runs a `batchfile` which specifies a `Python` job to generate a "clean" file of sensor readings for each operational station -
 
 - `pandas` asks the "sensor metadata" database for connection strings to the "readings" database, sensor metadata & user-specified erroneous reading timestamps via `Django` (powered by `mysqlclient`)
-- `pandas` asks the timeseries database for readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
-- `pandas` caches readings to a `pickle` file to skip trips to the timeseries database if specified
+- `pandas` asks the "timeseries" database for readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
+- If specified, `pandas` caches readings to a `pickle` file to skip trips to the timeseries database
 - `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified "flags"
 
 This is all glued together by a magic `Python` class called `StationRaw`.
 
-Are you following?!
-
-I found it next to impossible to test this glue.
-
-So I rolled out some very inadequate tests that checked aspects of it and moved on.
+I found it next to impossible to fully test this glue.   I had some success using "mocking" to replace aspects of this data flow with dummy data, so I rolled out some fairly inadequate tests and moved on.
 
 
 ---
