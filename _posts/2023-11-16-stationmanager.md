@@ -3,7 +3,7 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-> **TL;DR;** - a combination of `TimescaleDB` & standardising time-series readings before storage enabled merging a web application database with a timeseries database and massively reducing the number of lines of code required to process "raw" sensor readings into useful file outputs for analysis
+> **TL;DR;** For the last two years I have maintained a system which fetches readings from remote sensors, cleans them & exports them into files that can be used to answer questions like "where to place wind turbines on on a particular site".  By standardising & storing readings in a timeseries database called `TimescaleDB`, I was able to massively simplify both the system & code needed to process them.  Making `TimescaleDB` work well with `Django` was not straightforward but was ultimately worth the effort for the reduction in system complexity it enabled.
 
 > I owe this concept of data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf)
 
@@ -72,19 +72,19 @@ So how did it work?  And what did I do differently?
 It took me 2-3 months before I was "comfortable" to make a code change -
 
 - The server crashed multiple times a week
+- The code was untested[^CAO]
 - I couldn't run the code on my laptop because I didn't have a local developer environment
 - Not all dependencies (`Python` & non-`Python` 3rd party libraries) in use were documented
-- The code was untested[^CAO]
-- I didn't know the `Python` web framework in which the web application was written (`Django`)
-- I didn't know anything about relational databases which the web application relies on to store data
+- I had never used the `Python` web framework in which the web application was written (`Django`) or anything similar
+- I didn't know anything about relational databases; which the web application relies on to store data
 
 [^CAO]: Software tests check that code does what it was designed to do.  They provides software engineers with guard-rails, since if an aspect of a system is well tested then you might find out if your change breaks something before you roll it out.
 
 First up the crashes.
 
-It turns out that the web application was crashing because it was running on `Command Prompt` on a `Windows Virtual Machine` [in which `Quick-Edit Mode` was enabled](https://stackoverflow.com/questions/30418886/how-and-why-does-quickedit-mode-in-command-prompt-freeze-applications) (the default behaviour).  I turned it off & bingo, no more crashes.
+It turns out that the web application was crashing because it was running on `Command Prompt` on a `Windows Virtual Machine` [in which `Quick-Edit Mode` was enabled](https://stackoverflow.com/questions/30418886/how-and-why-does-quickedit-mode-in-command-prompt-freeze-applications) (the default behaviour).  On Romain's hunch, I turned it off & bingo, no more crashes.
 
-I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else like databases & non-`Python` libraries.
+I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (like databases & non-`Python` libraries).
 
 > Later when `Docker` refused to run on my machine due to "networking" issues,  I was forced to rebuild this developer environment in `nix` via [`devenv.sh`](https://devenv.sh/).
 
@@ -94,9 +94,7 @@ I managed to setup a reproducible developer environment on my laptop,  using `po
 
 With my new superpower I could now change things.  And so I did.  And something broke.  And so I patched it.  And something broke.
 
-Under pressure to fix bugs, I made changes without first covering the system in tests[^QIO],  and I suffered for it.
-
-So I paused all code changes and set about testing the most common usage scenarios.
+Under pressure to fix bugs, I made changes without first covering the system in tests[^QIO],  and I suffered for it.  So I paused all code changes and set about testing the most common usage scenarios.
 
 I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium`, and I automated running this bot automatically before any code change could be accepted via `GitHub Actions`[^PUD] which thanks to the `Docker`[^KAA] work was relatively straightforward.
 
@@ -104,7 +102,7 @@ I scripted a bot to replicate these scenarios by clicking through a browser via 
 
 I was now somewhat happier to make changes to the web application.
 
-I was still scared, however, to touch the data pipeline - the `Python` glue that transformed raw data into useful file outputs.  I was scared because I couldn't easily test it so I couldn't be sure that my changes wouldn't break things.  Why?
+I was still scared, however, to touch the data pipeline - the `Python` glue that transformed raw data into useful file outputs.  I was scared because I couldn't easily test it, so I couldn't be sure that my changes wouldn't break things.  Why?
 
 This web application depends on a database, so before testing a particular thing one has to -
 
@@ -200,7 +198,7 @@ Reading text files & importing them to a database table is surprisingly hard -
 
 `LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.  So the `Python` job had to adapt its database importer to the conventions of each type of logger.  It also tracked which files have been imported & which have not in the "metadata" database.
 
-> [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange so help relieve this particular burden.
+> [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange to help relieve this particular burden.
 
 
 ---
@@ -209,17 +207,11 @@ Reading text files & importing them to a database table is surprisingly hard -
 
 ## How sensor readings **were cleaned**
 
-By default all of the loggers store sensor readings in generic calibration, so each reading needs to be re-calibrated using its specific calibration before it can be used in analysis.
+By default all of the loggers are setup on-site using generic settings typical for that logger manufacturer.  Before these readings can be used the readings need to be "re-calibrated"[^XAR] using settings that are specific to particular settings.  If sensor readings are not re-calibrated using the correct settings then the readings will be off & the analysis relying on them will be wrong.
 
-> An anemometer measures wind speeds by counting the number of rotations per second or frequency of its spinning cups.  To convert frequency to wind speed we need to know an anemometer's calibration[^XAR].
+[^XAR]: Wind speed is typically measured by an anemometer.  It counts the number of rotations per second (or frequency) of its spinning cups.  To convert these rotations to wind speed one needs to know an anemometer's "calibrations" which are measured in a wind tunnel.  Mathematically, "calibrations" refer to the slope, `m`, and offset, `c`, in `f(x) = mx + c` where `x` refers to frequency &  `f(x)` to wind speed.
 
-[^XAR]:  Calibrations are measured in a wind tunnel.  If one blows wind over an anemometer for various wind speeds & measures the number of rotations for each then one can infer it.  Specifically, calibrations are the values for slope, `m`, and offset, `c`, in `f(x) = mx + c` where `x` refers to frequency &  `f(x)` to wind speed
-
-
-![anemometer.svg](/assets/images/icons/anemometer.svg){: width="100" }
-
-
-Also, sometimes there are issues with a sensor, so its readings are not valid & need to be removed.
+Sometimes there are issues with a sensor.  If it requires replacement, it takes time to go on-site and do so.  The values recorded in the interim will be wrong, so they need to be filtered out.
 
 How to re-calibrate & clean millions of readings?
 
@@ -238,7 +230,7 @@ This one's a bit hairy.
 
 This is all glued together by a magic `Python` class called `StationRaw`.
 
-I found it next to impossible to fully test this glue.   I had some success using "mocking" to replace aspects of this data flow with dummy data, so I rolled out some fairly inadequate tests and moved on.
+I found it next to impossible to fully test this glue.   After a lot of effort, I had only managed to test aspects of this data flow by using "mocking" to replace "timeseries" database with dummy data, so I rolled these out and moved on.
 
 
 ---
@@ -268,7 +260,7 @@ For most requests to the web application it doesn't need to do much work -
 
 "Big" requests, like refreshing a "useful" file export, require much more time to run.
 
-When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) for these "big" requests to complete.  So where possible I created a periodic `Python` job to pre-generate the output of these "big" requests so this wait time could be skipped -
+When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) for these "big" requests to complete.  So one of the first things I did was create a periodic `Python` job to pre-generate the output of these "big" requests so this wait time could be skipped -
 
 
 ![useful-files-to-user-via-database-entry.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-database-entry.svg)
@@ -290,7 +282,7 @@ One could click a "Manual Refresh" button to save a "flag" to the database marki
 
 There wasn't much more to be done here other than some housekeeping[^RAA] since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
 
-[^RAA]:  Credentials & file paths[^XOO] were hard-coded into the `Python` job so I pulled them into a `TOML` file to make them easier to edit.  I also adapted the scripts into notebooks, Each notebook does one thing (unzipping, decrypting, file syncing), to make them easier to read & edit
+[^RAA]:  Credentials & file paths were hard-coded into the `Python` job so I pulled them into a `TOML` file to make them easier to edit.  I also adapted the scripts into notebooks, Each notebook does one thing (unzipping, decrypting, file syncing), to make them easier to read & edit
 
 
 ---
@@ -301,9 +293,11 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 
 Now for some heftier changes.
 
-Here's something that wasn't obvious to me at first -
+"Sensor readings" are stored in one database, "sensor metadata" in another and the data is processed in `Python`.  The web application needs a database, so why not also use the same database for storing timeseries?
 
-How data is stored can introduce a lot of [**accidental complexity**](https://en.wikipedia.org/wiki/No_Silver_Bullet) to a system.
+If all data is stored in one database, then why not ask the database to process readings instead of using `Python`?
+
+How data is stored can introduce a lot of [**accidental complexity**](https://en.wikipedia.org/wiki/No_Silver_Bullet)!
 
 Let's say we have two database tables corresponding to two different loggers ...
 
@@ -323,13 +317,13 @@ Let's say we have two database tables corresponding to two different loggers ...
 
 Clearly both `Wind Speed 10m 180deg` and `WS10.180` mean the same thing but to a computer its not so clear.
 
-How do I find all wind speed readings?  Each column name column name corresonds to a height, magnetic orientation and a type of reading, so I first need to know what each column means.
+How do I find all wind speed readings?  Each column name corresonds to a height, magnetic orientation and a type of reading, so I first need to know what each column means.
 
-How do I link "metadata" to each column?  Not easily.
+How do I link "metadata" to each column?
 
-In `Python` I can hold both separately and join them when required -
+I can't easily do this on the database since its hard to express this in the database language `SQL`.
 
-> Please feel free to skip the `Python` & scroll down!
+`Python` is much more flexible, and so I can hold both separately and join them when required like -
 
 ```python
 {
@@ -377,14 +371,17 @@ In `Python` I can hold both separately and join them when required -
 But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources** like ...
 
 | timestamp | sensor_id | value |
-| --- | --- | --- |
-| value | Wind Speed 10m 180deg | value |
+| --- | --- | --- | --- | --- | --- |
+| 2023-11-27 00:00:00 | 1 | 5 |
+| 2023-11-27 00:00:00 | 2 | 60 |
+| 2023-11-27 00:00:00 | 3 | 4 |
+| 2023-11-27 00:00:00 | 3 | 70 |
 
 ... where `sensor_id` corresponds to the column name.
 
 Now how do I find all wind speed readings?  
 
-Easy.  I can now join the readings to their metadata in `SQL` ...
+Easy.  I can now don't need `Python` since I can join the readings to their metadata ...
 
 | timestamp | sensor_id | value | data_type | height | magnetic_orientation |
 | --- | --- | --- | --- | --- | --- |
@@ -393,10 +390,9 @@ Easy.  I can now join the readings to their metadata in `SQL` ...
 | 2023-11-27 00:00:00 | 3 | 4 | "Wind Speed" | 10 | 180 |
 | 2023-11-27 00:00:00 | 3 | 70 | "Wind Direction" | 10 | 180 |
 
-... and just select "Wind Speed" readings or whatever else I might require.
+... in the database and select "Wind Speed" readings or whatever else I might require.
 
-
-Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
+But won't timeseries readings be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
 [^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will be produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
 
@@ -404,13 +400,13 @@ Yes.  In a traditional relational database like  `Microsoft SQL Server`, `Postgr
 
 But what about timeseries databases?
 
-`TimescaleDB` is a `Postgres` extension that enables working with timeseries readings from within `Postgres`[^NAT].  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT].  So provided that its performance was comparable to `Python` I saw it as a viable alternative.
+`TimescaleDB` is a extension that enables working with timeseries readings from within the `Postgres`[^NAT] database.  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT].  So provided that its performance was comparable to `Python` I saw it as a viable alternative.
 
 [^NAT]: It's a very popular database, see [StackOverFlow's 2023 Developer Survey](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-databases)
 
 [^CAT]: As of 2023-11-20 `TimescaleDB` by default chunks readings in compressed hypertables into intervals of one week so `Postgres` doesn't need to read all rows for queries that only care about a particular period of time, see [Hypertables](https://docs.timescale.com/use-timescale/latest/hypertables/)
 
-The web application needs a database so the database is a hard requirement.  The web application framework, `Django`, works well with `Postgres` so by switching to `TimescaleDB` I found I could store all sensor metadata & all timeseries in the same database.
+The web application framework, `Django`, works well with `Postgres` so by switching to `TimescaleDB` I found I could store all sensor metadata & all timeseries in the same database.
 
 So two databases ...
 
@@ -429,7 +425,7 @@ Now this didn't come for free -
 - I had to figure out how to make the database go fast for importing & querying data.  
 - I needed a more intelligent importer since now all data needs to be transformed into the right format before storing it,  and this process depends on the source.
 
-Having said that,  I figured it was worth the cost (see next section)
+Having said that,  I figured it was worth the cost.
 
 
 ---
@@ -442,7 +438,7 @@ Having said that,  I figured it was worth the cost (see next section)
 ![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
 
 
-Now that all readings were stored in a single table in a workable format, I could link each sensor reading with its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`.
+Now that all readings were stored in a single table in a workable format, I could link each sensor reading with its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`, the database language.
 
 What was not so straightforward, however, was making file exports fast -
 
@@ -453,13 +449,11 @@ What was not so straightforward, however, was making file exports fast -
 
 How to speed up queries?
 
-If you don't have the right indexes for your query will be slow.  After a lot of pain,  I managed to find appropriate indexes by wrapping queries in `EXPLAIN ANALYSE` & experimenting.  `TimescaleDB` have [great resources on this topic](
+I found out the hard way that if you don't have create appropriate indexes for your queries then they will take an age to run.  `TimescaleDB` wrote up [a very helpful blog on this topic](
 https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-queries-sql-8ca2df6b3aaa/
-)
+).  What helped me the most was creating indexes, wrapping my queries in `EXPLAIN ANALYSE` & running them which let me see whether or not the query planner actually used them!
 
 How about exporting multiple sources in parallel?
-
-Previously each source was processed one by one & only two "useful" output files were generated per source.  After switching over it soon became to export ten per source.  How to parallelise?
 
 I found that I could use a task queue to run multiple queries at once.
 
@@ -469,11 +463,11 @@ However, this introduces other complexities -
 
 How many workers should be in the task queue?
 
-> Estimating the appropriate number of workers for the task queue is somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
+> I found estimating the appropriate number of workers for the task queue to be somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
 
-What if the database runs out of connections because the workers in the task queue require too many?
+What if the database runs out of connections because the web application plus the workers in the task queue use them up?
 
-> Each worker runs a big database query, which may or may not leverage `Postgres` parallel workers in which case one connection can become multiple.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which intermittently caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forces reusing connections rather than spinning up new ones.  `Postgres` was still spinning up parallel workers if the query planner decided this is necessary so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to prevent these types of crashes.
+> I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forces reusing connections rather than spinning up new ones.  This helped but `Postgres` was still spinning up parallel workers to answer particular queries if the query planner decided this was necessary, so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to manage connections.
 
 I still had complexity,  but I no longer needed to worry about -
 
@@ -481,7 +475,7 @@ I still had complexity,  but I no longer needed to worry about -
 - Running out of memory - I'm looking at you `pandas`
 - Testing the system end-to-end
 
-At last I was able to create good tests on importing, processing & exporting files of sensor readings from all manufacturers that we care about.
+At last I was able to fully test the data flow on sample data from all of the logger manufacturers we have used so far,  so I could guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system cannot handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch".
 
 The complexity was at last manageable.
 
@@ -497,12 +491,18 @@ Now once again for the "visible" part, the web application -
 
 ![useful-files-to-user-via-task-queue.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-task-queue.svg)
 
-After all of that effort there were only a few edits to the user experience -
+Somewhat sadly for the backend engineer, this bulk of this work is mostly "invisible" other than -
 
 - Faster "big" requests (like refreshing a "useful" file export) since they are offloaded to a task queue which can process in parallel
 - Faster data access
 - Manual file uploads
 - Direct access to "raw" files of sensor readings
+
+However, the aim of this project was not to provide flashy new things, but rather to setup foundations which can be built upon for years to come.
+
+Has this been achieved?
+
+Only time will tell!
 
 
 ---
