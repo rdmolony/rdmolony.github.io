@@ -391,11 +391,9 @@ Easy.  I can now join the readings to their metadata in `SQL` ...
 
 ... and just select "Wind Speed" readings or whatever else I might require.
 
-Now that I can stay in `SQL` a whole load of complexity just falls away.  I don't need to worry about -
 
-- Gluing databases together
-- Running out of memory - I'm looking at you `pandas`
-- Testing the system end-to-end - it's easy to switch out a single database with a "test" database
+> I owe this insight to Hadley Wickham's concept of ["Tidy Data"](https://vita.had.co.nz/papers/tidy-data.pdf)
+
 
 Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
@@ -430,7 +428,7 @@ Now this didn't come for free -
 - I had to figure out how to make the database go fast for importing & querying data.  
 - I needed a more intelligent importer since now all data needs to be transformed into the right format before storing it,  and this process depends on the source.
 
-Having said that,  I figured the additional complexity on import was worth the cost given the reduction in system complexity.
+Having said that,  I figured it was worth the cost (see next section)
 
 
 ---
@@ -443,144 +441,28 @@ Having said that,  I figured the additional complexity on import was worth the c
 ![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
 
 
-Re-calibrating & flagging sensor readings in a format like ...
+Now that all readings were stored in a single table in a workable format, I could link each sensor reading with its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`.
 
-| timestamp | sensor_name_1 | ... | sensor_name_n |
-| --- | --- | --- | --- |
-| value | value | ... | value |
+What was not so straightforward, however, was making file exports fast -
 
-... is surprisingly difficult since each column name is also data - it implies what type of sensor the column of data represents.
+- Big queries can be slow.  Asking a database for millions of readings can be slow since - unlike `pandas` - databases read from disk as well as memory
+- Reformatting query results in `SQL` is hard, so I decided to query in batches & stream each batch through `Python` to reformat
 
-So if one has to thread carefully to process it -
-
-```ruby
-# sensor looks like timestamp_1=value, ...
-for sensor in sensor_name_1...sensor_name_n:
-
-  # If a sensor has been replaced
-  # then `pandas` must apply different calibrations 
-  # to different timestamp ranges
-  for timestamps, recalibrate in calibrations[sensor]:
-    sensor[timestamps] = recalibrate sensor[timestamps]
-
-  # Flag rules differ depending on the type of data -
-  # a very large or very small wind speed reading will differ
-  # from a very large battery voltage
-  for flag_rule in flag_rules[sensor]:
-    for filter_by_flag_rule in flag_rule:
-      sensor = filter_by_flag_rule sensor
-
-  # User "flags" specify that say a wind speed sensor was dodgy
-  # for a few days as it was broken so only apply to some columns
-  # for some timestamps
-  for timestamps, filter_by_user_flag in user_flags[sensor]:
-    sensor[timestamps] = filter_by_user_flag sensor[timestamps]
-```
-
-It's shockingly easier to work with the data once it's reformatted to a "tidier"[^ROR] format ...
-
-[^ROR]: See [Hadley Wickham's Tidy Data](https://vita.had.co.nz/papers/tidy-data.pdf) for a more in-depth discussion.  Note that the "tidier" representation is still not "tidy" since the values column doesn't necessarily represent a single unit like wind speed in m/s or wind direction in degrees but rather contains many units!
-
-| timestamp | sensor_id | value |
-| --- | --- | --- |
-| value | value | value |
-
-Now that each row represents a unique reading,  the data is "mergeable"!
-
-So I can link each reading with its corresponding metadata ...
-
-| timestamp | sensor_id | value | calibration | flag_rule | user_flag |
-| --- | --- | --- | --- | --- | --- |
-| value | value | value | value | value | value |
-
-... and processing becomes much simpler since I can now apply each rule directly rather than over a range of timestamps & a range of columns since metadata is already linked to its corresponding timestamp -
-
-```
-reading = reading -> calibrate -> filter_by_flag_rule -> filter_by_user_flag
-```
-
-Will this scale to any size dataset?
-
-As of 2023, `pandas` loads all data into memory by default.  If one wants to process more than one set of readings at the same time & each set of readings number in the millions this can push a server to its limits.
-
-This particularly becomes an issue on merging readings with metadata since the data grows & grows in size[^XKC].
-
-[^XKC]: This might not remain an issue forever, as of this writing `polars` is capable of "streaming" data from files, so only reading what it needs in chunks.  `pandas` does have `chunksize` for reading csvs, however, I've found it clunky to work with when compared to `polars` or `SQL`
-
-I had to maintain a `Django` web application & this requires a database, so why not leverage the database "engine" for processing data?
-
-Databases are smart.  They don't load all data into memory by default & so can handle these merges without using up all server resources, but they do have other complexities.
-
-As discussed,  I decided to store readings in the database via `TimescaleDB`.
-
-With the readings living alongside the sensor metadata in `TimescaleDB` merging & processing is straightforward -
-
-<details>
-<summary>👈 Re-calibrate via SQL</summary>
-<br>
-{% highlight sql %}
-      select  reading.timestamp,
-              reading.file_id,
-              reading.sensor_id,
-              (
-                case
-                  when meta.data_type = 'Wind Direction'
-                       and meta.reading_type = 'avg'
-                  then float_modulus(
-                         reading.generic_reading
-                         + meta.deadband
-                         + case
-                             when meta.oriented_to_true_north = false
-                             then meta.magnetic_declination
-                             else 0
-                           end,
-                         360
-                       )
-                  else reading.generic_reading
-                end
-                - meta.logger_offset
-              )
-              * (meta.certificate_slope / meta.logger_slope)
-              + meta.certificate_offset
-              as calibrated_reading
-
-        from  sensor_reading_generic as reading
-  inner join  sensor_metadata  as meta
-          on  meta.sensor_name_id = reading.sensor_id
-              and reading.timestamp >= meta.sensor_commission_date
-              and reading.timestamp < meta.sensor_decommission_date
-  inner join  logger_file as file
-          on  file.id = reading.file_id
-              and file.station_id = reading.station_id
-              and file.is_ignored = false
-
-        where reading.station_id = <STATION_ID>
-              and meta.station_id = <STATION_ID>
-              and reading.timestamp >= '<START>'::timestamp
-              and reading.timestamp < '<STOP>'::timestamp
-              and flag.type is distinct from 'Fault'
-{% endhighlight %}
-</details>
-<br>
-
-What's not straightforward, however, is making file exports fast -
-
-- Big queries can be slow.  They read from disk as well as memory - unlike `pandas` - which is good for server resources but worse for performance.
-- Reformatting query results in `SQL` is hard.  Queries are read in batches & reformatted in `Python`[^EEK]
-
-[^EEK]: I found it simpler to reformat readings from one reading per row to one column per sensor for the output file in `Python`.  `Postgres` has `crosstab` for going from wide to long, but I found it hard to work work with since my queries were dynamic crosstabulations which it doesn't handle easily.  I can also use `max(case when sensor_id=<SENSOR_ID> then reading else null) from reading group by timestamp` to achieve the same result as `crosstab`.  Both methods let me use `COPY TO` to save to a file directly in `SQL`, which can be really fast, but I found exporting to formats other than plain text files like `zip` hard & require more work back in `Python`.
+> Ideally I would reformat readings (from one reading per row to one column per sensor) in `Postgres` to avoid the `Python` performance hit, however, I just found it too hard.  `Postgres` has `crosstab`, but it didn't "fit" this use case (dynamic crosstabulations).  Exporting to formats other than plain text files such as `zip` is also not well supported.
 
 How to speed up queries?
 
-If you don't have the right indexes for your query `TimescaleDB` won't go fast.
-
-[Finding the right indexes](
+If you don't have the right indexes for your query will be slow.  After a lot of pain,  I managed to find appropriate indexes by wrapping queries in `EXPLAIN ANALYSE` & experimenting.  `TimescaleDB` have [great resources on this topic](
 https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-queries-sql-8ca2df6b3aaa/
-) was't too bad once I realised I could wrap my slow queries in `EXPLAIN ANALYSE` & experiment on different indexes to see the impact of each.
+)
 
-How to export multiple sources in parallel?
+How about exporting multiple sources in parallel?
 
-Previously each set of readings was processed one by one & only two types of "useful" output file was produced per source.  Now 10 timeseries output files are produced per source,  & producing each one is slower.  With some parallel processing this becomes more manageable.
+Previously each source was processed one by one & only two "useful" output files were generated per source.  After switching over it soon became to export ten per source.  How to parallelise?
+
+I found that I could use a task queue to run multiple queries at once.
+
+> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
 Managing database & task worker resource usage is hard.
 
@@ -596,6 +478,12 @@ I worked out that I could limit the number of connections by routing my `Postgre
 
 `Postgres` may still spin up parallel workers if the query planner decides this is necessary.  So I had to experiment with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` to prevent these types of crashes.
 
+
+ since I no longer needed to worry about -
+
+- Gluing databases together
+- Running out of memory - I'm looking at you `pandas`
+- Testing the system end-to-end - it's easy to switch out a single database with a "test" database
 
 ---
 <br>
