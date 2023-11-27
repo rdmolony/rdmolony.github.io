@@ -120,21 +120,15 @@ I couldn't for the life of me work out how to replace the second database with a
 
 And this "glue" code was only the tip of the iceberg.
 
-It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the "timeseries" database,  any of which going wrong caused issues downstream.
-
-So for a year I (mostly) avoided touching this.
+It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the "timeseries" database,  any of which going wrong caused issues downstream.  So for a year I (mostly) avoided touching this.
 
 And there certainly were problems.
 
-In one case, a tool that fetches files of sensor readings from remote sensors (`LoggerNet`) went down for a few days.  Upon restoring it we noticed that the "readings" database was missing a few days of readings, and the tool that imports these files to this database (`LNDB`) refused to backfill these missing readings.
-
-So I had to manually import each file for each gap.
+In one case, a tool that fetches files of sensor readings from remote sensors (`LoggerNet`) went down for a few days.  Upon restoring it we noticed that the "readings" database was missing a few days of readings, and the tool that imports these files to this database (`LNDB`) refused to backfill these missing readings.  So I had to manually import each file for each gap.
 
 In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version.  This update resulted in invalid sensor readings being exported from the system to analysts.  It took us a few weeks to notice & luckily had no impact, but was stressful nonetheless.
 
-If something doesn't work,  this team can't do their job.
-
-So eventually I decided that something had to be done ...
+If something doesn't work,  this team can't do their job.  So when I was finally confident that I could rebuild the data pipeline more cleanly on top of better foundations,  I did.
 
 
 ---
@@ -150,14 +144,14 @@ So eventually I decided that something had to be done ...
 ![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
 
 
-To fetch files from loggers manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
+To fetch files from remote sensors manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
 
 [^RAT]: At least from a software engineer's perspective, installing loggers & configuring `LoggerNet` is not something I have experience with
 
 - Install their `LoggerNet` software on a `Microsoft Windows` server
-- Configure the loggers in `LoggerNet`
+- Configure the remote sensors (or "loggers") in `LoggerNet`
 
-... & tada, the files are fetched & saved to the `Microsoft Windows` server.
+... & tada, the files are fetched & saved to this `Microsoft Windows` server.
 
 But what about the non-`Campbell Scientific` loggers?
 
