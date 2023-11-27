@@ -3,6 +3,11 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
+> **TL;DR;** - a combination of `TimescaleDB` & standardising time-series readings before storage enabled merging a web application database with a timeseries database and massively reducing the number of lines of code required to process "raw" sensor readings into useful file outputs for analysis
+
+> I owe this concept of data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf)
+
+
 Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` -
 
 Its job -
@@ -261,14 +266,13 @@ For most requests to the web application it doesn't need to do much work -
 - To display a web page it asks the database for the data it needs to display it (`HTML`, `CSS` & `JavaScript`) & enriches them with this data
 - To serve "static" files like images or `csv` text files it shares them directly via `NGINX`
 
-Refreshing a "useful" file of sensor readings requires much more time to run.
+"Big" requests, like refreshing a "useful" file export, require much more time to run.
 
-When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) to generate this file.
-
-So I created a periodic `Python` job to pre-generate these "useful" files for users, so this wait time could be skipped -
+When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) for these "big" requests to complete.  So where possible I created a periodic `Python` job to pre-generate the output of these "big" requests so this wait time could be skipped -
 
 
 ![useful-files-to-user-via-database-entry.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-database-entry.svg)
+
 
 One could click a "Manual Refresh" button to save a "flag" to the database marking the file to be re-generated the next time a job was run.  This job could only process one file at a time.
 
@@ -392,9 +396,6 @@ Easy.  I can now join the readings to their metadata in `SQL` ...
 ... and just select "Wind Speed" readings or whatever else I might require.
 
 
-> I owe this insight to Hadley Wickham's concept of ["Tidy Data"](https://vita.had.co.nz/papers/tidy-data.pdf)
-
-
 Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
 [^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will be produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
@@ -464,26 +465,26 @@ I found that I could use a task queue to run multiple queries at once.
 
 > A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
-Managing database & task worker resource usage is hard.
+However, this introduces other complexities -
 
-Estimating the appropriate number of workers for the task queue is somewhat of a fine art.  I experimented with various numbers of "threads" & "processes" & queued the most CPU & RAM intensive tasks while watching resource usage to come up guess numbers.
+How many workers should be in the task queue?
 
-How much CPU or RAM is too much?  Should minimising CPU or RAM be prioritised?
+> Estimating the appropriate number of workers for the task queue is somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
 
-How to keep the number of `Postgres` connections under control?
+What if the database runs out of connections because the workers in the task queue require too many?
 
-Each worker runs a big database query, which may or may not leverage `Postgres` parallel workers such that one connection can become multiple.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.
+> Each worker runs a big database query, which may or may not leverage `Postgres` parallel workers in which case one connection can become multiple.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which intermittently caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forces reusing connections rather than spinning up new ones.  `Postgres` was still spinning up parallel workers if the query planner decided this is necessary so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to prevent these types of crashes.
 
-I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forces reusing connections rather than spinning up new ones.
-
-`Postgres` may still spin up parallel workers if the query planner decides this is necessary.  So I had to experiment with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` to prevent these types of crashes.
-
-
- since I no longer needed to worry about -
+I still had complexity,  but I no longer needed to worry about -
 
 - Gluing databases together
 - Running out of memory - I'm looking at you `pandas`
-- Testing the system end-to-end - it's easy to switch out a single database with a "test" database
+- Testing the system end-to-end
+
+At last I was able to create good tests on importing, processing & exporting files of sensor readings from all manufacturers that we care about.
+
+The complexity was at last manageable.
+
 
 ---
 <br>
@@ -492,29 +493,16 @@ I worked out that I could limit the number of connections by routing my `Postgre
 ## How sensor readings **are now accessed**
 
 
-
 Now once again for the "visible" part, the web application -
 
 ![useful-files-to-user-via-task-queue.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-task-queue.svg)
 
-If the people want to access or update data for a particular source,  they can search for the source in the web application & from there they can -
+After all of that effort there were only a few edits to the user experience -
 
-- Access "useful" timeseries files of sensor readings
-- Change the calibrations for a particular source's sensor
-- Flag erroneous readings graphically
-- Manually refresh a "useful" export file
-
-The web application is built using the `Django` web framework.
-
-For most requests to the web application it doesn't need to do much work.  To display a requested web page It merely has to either ask the database for the data it needs to display the web page they have asked for (`HTML`, `CSS` & `JavaScript`) or `NGINX` for files.
-
-For long-running requests like refreshing a file export,  a task queue is used.
-
-> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
-
-
-
-Their request is added to the task queue which is then processed by a worker when it has time to do so.  They might wish to do so if the calibrations of a station have changed or if a new "flags" marking erroneous readings have been added more recently than the most recent source cache.
+- Faster "big" requests (like refreshing a "useful" file export) since they are offloaded to a task queue which can process in parallel
+- Faster data access
+- Manual file uploads
+- Direct access to "raw" files of sensor readings
 
 
 ---
