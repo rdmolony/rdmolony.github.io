@@ -297,27 +297,105 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 
 Now for some heftier changes.
 
-What if instead of storing the readings for each logger in its own table the readings are standardised before storage?
+Here's something that wasn't obvious to me at first -
 
-So instead of storing each source in its own table like ...
+How data is stored can introduce a lot of [**accidental complexity**](https://en.wikipedia.org/wiki/No_Silver_Bullet) to a system.
 
-| timestamp | sensor_name_1 | ... | sensor_name_m |
-| --- | --- | --- | --- |
-| value | value | ... | value |
+Let's say we have two database tables corresponding to two different loggers ...
 
-...
+| timestamp | Wind Speed 10m 180deg | Wind Direction 10m 180deg |
+| --- | --- | --- |
+| 2023-11-27 00:00:00 | 5 | 60 |
+| ... | ... | ... |
 
-| timestamp | sensor_name_n | ... | sensor_name_m |
-| --- | --- | --- | --- |
-| value | value | ... | value |
+... for one and ...
 
-... create a single table of sources like ...
+| timestamp | WS10.180 | WD10.180 |
+| --- | --- | --- |
+| 2023-11-27 00:00:00 | 4 | 70 |
+| ... | ... | ... |
+
+... for another.
+
+Clearly both `Wind Speed 10m 180deg` and `WS10.180` mean the same thing but to a computer its not so clear.
+
+How do I find all wind speed readings?  Each column name column name corresonds to a height, magnetic orientation and a type of reading, so I first need to know what each column means.
+
+How do I link "metadata" to each column?  Not easily.
+
+In `Python` I can hold both separately and join them when required -
+
+> Please feel free to skip the `Python` & scroll down!
+
+```python
+{
+  "source_1":  {
+    "timeseries": {
+      "timestamp" ["2023-11-27 00:00:00", ...],
+      "Wind Speed 10m 180deg": [5, ...],
+      "Wind Direction 10m 180deg": [60, ...],
+    },
+    "metadata": {
+      "Wind Speed 10m 180deg": {
+        "data_type": "Wind Speed",
+        "magnetic_orientation": 180
+        "height": 10,
+      },
+      "Wind Direction 10m 180deg": {
+        "data_type": "Wind Direction",
+        "magnetic_orientation": 180
+        "height": 10,
+      },
+    }
+  },
+  "source_2":  {
+    "timeseries": {
+      "timestamp" ["2023-11-27 00:00:00", ...],
+      "WS10.180": [4, ...],
+      "WD10.180": [70, ...],
+    },
+    "metadata": {
+      "WS10.180": {
+        "data_type": "Wind Speed",
+        "magnetic_orientation": 180
+        "height": 10,
+      },
+      "WD10.180": {
+        "data_type": "Wind Direction",
+        "magnetic_orientation": 180
+        "height": 10,
+      },
+    }
+  }
+}
+```
+
+But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources** like ...
 
 | timestamp | sensor_id | value |
 | --- | --- | --- |
-| value | value | value |
+| value | Wind Speed 10m 180deg | value |
 
-... so all readings for all sources can be queried from one place.
+... where `sensor_id` corresponds to the column name.
+
+Now how do I find all wind speed readings?  
+
+Easy.  I can now join the readings to their metadata in `SQL` ...
+
+| timestamp | sensor_id | value | data_type | height | magnetic_orientation |
+| --- | --- | --- | --- | --- | --- |
+| 2023-11-27 00:00:00 | 1 | 5 | "Wind Speed" | 10 | 180 |
+| 2023-11-27 00:00:00 | 2 | 60 | "Wind Direction" | 10 | 180 |
+| 2023-11-27 00:00:00 | 3 | 4 | "Wind Speed" | 10 | 180 |
+| 2023-11-27 00:00:00 | 3 | 70 | "Wind Direction" | 10 | 180 |
+
+... and just select "Wind Speed" readings or whatever else I might require.
+
+Now that I can stay in `SQL` a whole load of complexity just falls away.  I don't need to worry about -
+
+- Gluing databases together
+- Running out of memory - I'm looking at you `pandas`
+- Testing the system end-to-end - it's easy to switch out a single database with a "test" database
 
 Won't this be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
@@ -325,24 +403,34 @@ Won't this be really slow to store & query since the table will contain **a lot*
 
 Yes.  In a traditional relational database like  `Microsoft SQL Server`, `Postgres` or `MySQL` it will be,  since these databases are designed to store & query new entries row by row.
 
-What about timeseries databases?
+But what about timeseries databases?
 
-`TimescaleDB` is a `Postgres` extension that enables working with timeseries readings from within `Postgres`[^NAT].  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT]. 
+`TimescaleDB` is a `Postgres` extension that enables working with timeseries readings from within `Postgres`[^NAT].  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT].  So provided that its performance was comparable to `Python` I saw it as a viable alternative.
 
 [^NAT]: It's a very popular database, see [StackOverFlow's 2023 Developer Survey](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-databases)
+
 [^CAT]: As of 2023-11-20 `TimescaleDB` by default chunks readings in compressed hypertables into intervals of one week so `Postgres` doesn't need to read all rows for queries that only care about a particular period of time, see [Hypertables](https://docs.timescale.com/use-timescale/latest/hypertables/)
 
-I went all in on `TimescaleDB`.
+The web application needs a database so the database is a hard requirement.  The web application framework, `Django`, works well with `Postgres` so by switching to `TimescaleDB` I found I could store all sensor metadata & all timeseries in the same database.
 
-Since `Django` works well with `Postgres` I could also use `TimescaleDB` to store all sensor metadata,  so two databases became one -
+So two databases ...
+
+
+![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
+
+
+... became one ...
 
 
 ![loggernet-server-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-timescale-database.svg)
 
 
-This switch didn't come for free since I now need a more intelligent importer for all sources since data needs to be transformed into the right format before storing it,  and this process depends on the source!
+Now this didn't come for free -
 
-Having said that,  I figured the additional complexity on import was worth the cost given that processing logic on this table is now standardised for all sources.
+- I had to figure out how to make the database go fast for importing & querying data.  
+- I needed a more intelligent importer since now all data needs to be transformed into the right format before storing it,  and this process depends on the source.
+
+Having said that,  I figured the additional complexity on import was worth the cost given the reduction in system complexity.
 
 
 ---
