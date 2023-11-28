@@ -317,7 +317,7 @@ Let's say we have two database tables corresponding to two different loggers ...
 
 Clearly both `Wind Speed 10m 180deg` and `WS10.180` mean the same thing but to a computer its not so clear.
 
-How do I find all wind speed readings?  Each column name corresonds to a height, magnetic orientation and a type of reading, so I first need to know what each column means.
+How do I find all wind speed readings?  Each column name corresponds to a height, magnetic orientation and a type of reading, so I first need to know what each column means.
 
 How do I link "metadata" to each column?
 
