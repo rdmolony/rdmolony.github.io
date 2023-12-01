@@ -460,11 +460,11 @@ Now this change didn't come for free,  I had to ...
 - Adapt the web application so it would accept sensor files sent from another program (via an "Application Programming Interface" built on `django-rest-framework`)
 - Build an exporter to send files to the web application alongside their file type, since the importer needs to know what type of file it is dealing with before it can import it
 - Build out a user interface on the web application to allow manually uploading files
-- Rebuild the task queue on `dramatiq`[^TOT]
+- Rebuild the task queue on `dramatiq`[^TOT] to run multiple file import tasks at the same time[^KIR]
 
 [^TOT]: I couldn't figure out how to use the prior task queue engine `huey` to run tasks in parallel on a `Windows` operating system.  Most task queues use `*nix` only features for parallelism so don't bother supporting it.  `Windows` has been a hard constraint on us, and can really limit tooling options.  Thankfully, `dramatiq` supports windows & proved itself to be alternative.
 
-> Once again,  a task queue was used to run multiple file import tasks at the same time, except this time the task queue engine `dramatiq` was actually able to do this on `Windows`
+[^KIR]: Except this time the task queue engine `dramatiq` was actually able to run tasks on parallel on `Windows`
 
 Having said all that,  I figured it was worth the cost for the simplicity it enables for the next step - data cleaning.
 
@@ -493,23 +493,17 @@ What was not so straightforward, however, was exporting files in the formats tha
 
 How to speed up queries?
 
-I found out the hard way that if you don't create appropriate indexes for your queries then they will take forever to run.  `TimescaleDB` wrote up [a very helpful blog on this topic](
-https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-queries-sql-8ca2df6b3aaa/
-).
+I could use database indexes[^QAZ] and a task queue to run multiple queries at once.  Parallel tasks in this case, however, are not as easy since exporting millions of readings to a file is very resource intensive -
 
-> I managed to improve performance quite a lot by wrapping my slow queries in `EXPLAIN ANALYSE` to see whether or not they actually used the indexes I created for them.
+[^QAZ]: I found out the hard way that if you don't create appropriate indexes for your queries then they will take forever to run.  `TimescaleDB` wrote up [a very helpful blog on this topic](https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-queries-sql-8ca2df6b3aaa/).  I managed to improve performance quite a lot by wrapping my slow queries in `EXPLAIN ANALYSE` to see whether or not they actually used the indexes I created for them.
 
-How about exporting multiple sources in parallel?
+How many workers should be in the task queue?[^TOW]
 
-Once again, I found that I could use a task queue to run multiple queries at once, however, this task wasn't as straightforward since exporting millions of readings to a file is very CPU & RAM intensive -
+[^TOW]: I found estimating the appropriate number of workers for the task queue to be somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
 
-How many workers should be in the task queue?
+What if the database runs out of connections?[^TWW]
 
-> I found estimating the appropriate number of workers for the task queue to be somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
-
-What if the database runs out of connections?
-
-> The web applications and the workers both needed connections.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forced reusing connections rather than spinning up new ones.  This helped but wasn't enough.  I found that `Postgres` was still spinning up parallel workers to answer particular queries if the query planner decided this was necessary, so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to bring this under control.
+[^TWW]: The web applications and the workers both needed connections.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forced reusing connections rather than spinning up new ones.  This helped but wasn't enough.  I found that `Postgres` was still spinning up parallel workers to answer particular queries if the query planner decided this was necessary, so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to bring this under control.
 
 
 ---
@@ -573,7 +567,7 @@ The aim of this project was not to provide flashy new things, but rather to setu
 
 Has this been achieved?
 
-Only time will tell.
+Only time will tell!
 
 
 ---
