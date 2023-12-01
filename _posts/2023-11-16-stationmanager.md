@@ -525,16 +525,14 @@ Now finally back to the "visible" parts -
 
 Somewhat sadly for the backend engineer, this bulk of this work is mostly "invisible" other than -
 
-- Faster "big" requests (like refreshing a "useful" file export) since they are offloaded to a task queue which can process in parallel
 - Faster data access
+- Faster "big" requests
 - Manual file uploads
 - Direct access to "raw" files of sensor readings
 
-However, the aim of this project was not to provide flashy new things, but rather to setup foundations which can be built upon for years to come.
+It was designed so data is exported to files in advance so data access doesn't require any extra work.  It's as simple as accessing files.
 
-Has this been achieved?
-
-Only time will tell!
+The only "big" requests remaining, like re-exporting a source, are offloaded to a task queue which can process them in parallel without using up all of the server resources.
 
 
 ---
@@ -543,16 +541,35 @@ Only time will tell!
 
 # Closing Remarks
 
+After all of that, I still had to manage complexity and so I still had failure modes[^IOP].
 
-I still had complexity,  but I no longer needed to worry about -
+[^IOP]: Failure modes -
+    - Sensor readings are not uploaded to the web application
+    - Sensor readings are not imported to the database
+    - A file export fails
+    - `LoggerNet` or `SmartGrid` go down, so no new sensor readings are fetched
+    - A database backup fails
 
-- Gluing databases together
-- Running out of memory - I'm looking at you `pandas`
-- Testing the system end-to-end
+I didn't manage a 100% smooth transition from one system to the other. There were issues, and on more than one occasion the data pipeline went down for a few days[^OOPS].
 
-At last I was able to fully test the data flow on sample data from all of the logger manufacturers we have used so far,  so I could guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system cannot handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch".
+[^OOPS]: Issues -
+    - Export tasks were slow,  so the files could take hours to refresh
+    - I couldn't for the life of me work out how to consistently schedule export tasks where a source has recently been updated (so the database has new readings), skipping tasks that are already on the task queue
+    - I made a mistake which resulted in files not being sent to the web application, and another which resulted in API access from the notebooks breaking
 
-The complexity was at last manageable.
+I made my best effort at covering this implementation in code tests (to check each part was doing what I designed it to do) but it's really hard to cover all scenarios.
+
+Mistakes can't be avoided, but they can be managed.  The only way to remain sane is to find out about a problem as soon as occurs via email alerts[^CWR] or otherwise.  Tests will only get you so far.
+
+[^CWR]: A **Workflow Orchestration** tools like `prefect` might have given me a lot of comfort, however, I was hesitant to lock us into another cloud product.  Even just email alerts would help a lot, however, email servers also requires of whom getting approval can take a lot of time.
+
+On the bright side, I was finally able to fully test the data flow on sample data from all of the logger manufacturers used so far,  so I could (mostly) guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system can't handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch" to ensure that that particular case won't pop up again.
+
+The aim of this project was not to provide flashy new things, but rather to setup foundations which can be built upon for years to come & upon which a developer can rely on to keep them out of trouble.
+
+Has this been achieved?
+
+Only time will tell.
 
 
 ---
