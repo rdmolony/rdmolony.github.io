@@ -164,7 +164,7 @@ Remote sensors are normally in deserts so connecting to them is not cheap or eas
 
 These files are normally compressed & encrypted.  So another `Python` job was created to automatically unzip them (via `7zip`) & decrypt them (via `ZPH2CSV.exe`) where relevant.
 
-These jobs need to be run periodically.  So a `batchfile` specifying the `Python` jobs was scheduled in `Task Scheduler` on the same server as `LoggerNet`.
+These jobs need to be run periodically.  So a `batchfile` specifying the `Python` jobs was scheduled in `Task Scheduler` on the same server as the web application.
 
 
 ---
@@ -196,9 +196,19 @@ Reading text files & importing them to a database table is surprisingly hard -
 - What columns represent timestamps?  How are they formatted?
 - Are there columns in the file that are not reflected in the database table?  If so,  the database table must be updated!
 
-`LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.  So the `Python` job had to adapt its database importer to the conventions of each type of logger.  It also tracked which files have been imported & which have not in the "metadata" database.
+`LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.
+
+So the `Python` job had to adapt its database importer to the conventions of each type of logger.
+
+It also tracked which files have been imported & which have not in the "metadata" database" which is linked to the web application, so this import status was "viewable" by the team.
 
 > [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange to help relieve this particular burden.
+
+How about importing multiple files at the same time?  The team used a "Task Queue" ...
+
+> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
+
+... to queue import jobs and process these jobs using as many workers as available.
 
 Finally, the importer also handled files uploaded directly to the file server.  To do so the team would have to ...
 
@@ -258,17 +268,17 @@ Data was accessed from either the web application (built using the `Django` web 
 
 In both cases every time someone wanted to access data for a particular source it was generated on demand, so they had to wait however long it took for the `Python` "glue" to pull everything together.
 
-> For usage not related to data access the web application didn't need to do much work since these scenarios are well served by `Django` -
+> For usage not related to data access the web application didn't need to do much work since these scenarios were well served by `Django` -
 >- To display a web page it asks a database for the data it needs to render files that the browser needs (`HTML`, `CSS` & `JavaScript`) so it can display a user interface
->- To serve "static" files like images or `csv` text files it can shares them directly (typically by routing to another tool like `NGINX` or `Apache`)
+>- To serve "static" files like images or `csv` text files it can just send them directly (typically by routing to another tool like `NGINX` or `Apache`)
 
 The web application enabled configuring the data pipeline to change the exported data sets.  One could flag erroneous readings graphically so that they would be filtered out, or change a particular sensor's settings so its readings would be shifted.
 
-Back in 2014/15 there was a push internally to do all energy analysis in `Python` in `Jupyter Notebooks`.
+Back in 2014/15 there was a push internally to do all energy analysis in `Python` in `Jupyter Notebooks` ...
 
 > `Jupyter Notebook` is a web-based interactive computing platform
 
-By the time I started, these notebooks had been largely phased out in favour of dedicated tooling like `Windographer`, and were only used for scenarios not yet covered by such tooling.
+... however, by the time I started, these notebooks had been largely phased out in favour of dedicated tooling like `Windographer`, and were only used for scenarios not yet covered by such tooling.
 
 To make the lives of the team easier,  they could access and run the notebooks from their browser over a Virtual Private Network (VPN) connection without having to install anything.
 
@@ -429,21 +439,19 @@ But what about timeseries databases?
 
 The web application framework, `Django`, works well with `Postgres` so by switching to `TimescaleDB` I found I could store all sensor metadata & all timeseries in the same database.
 
-So two databases ...
+So three databases ...
 
 
 ![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
 
 
-... became two databases ...
+... became, well, two databases ...
 
 
 ![source-files-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-timescale-database.svg)
 
 
-
-
-Now this didn't come for free,  I had to ...
+Now this change didn't come for free,  I had to ...
 
 - Build an importer on the web application to parse sensor files and import them to the `TimescaleDB` database
 - Adapt the web application so it would accept sensor files sent from another program (via an "Application Programming Interface" built on `django-rest-framework`)
@@ -483,8 +491,6 @@ https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-que
 How about exporting multiple sources in parallel?
 
 I found that I could use a task queue to run multiple queries at once.
-
-> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
 However, this introduces other complexities -
 
