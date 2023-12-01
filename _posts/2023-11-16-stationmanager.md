@@ -174,7 +174,7 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 ## How logger files **were imported** to a database
 
 
-![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
+![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
 
 
 Most logger files only contain readings for at most a few days,  so all files associated with a particular logger need to be amalgamated.
@@ -200,6 +200,14 @@ Reading text files & importing them to a database table is surprisingly hard -
 
 > [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange to help relieve this particular burden.
 
+Finally, the importer also handled files uploaded directly to the file server.  To do so the team would have to ...
+
+- Connect to the Virtual Private Network (VPN)
+- Map this remote file server as a network drive
+- Copy & paste across
+
+... and since mapped network drives didn't allow granting  "write access" without also granting "delete access" it was very possible that someone could **accidentally delete everything**.
+
 
 ---
 <br>
@@ -221,14 +229,16 @@ This one's a bit hairy.
 ![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
 
 
-`Task Scheduler` periodically runs a `batchfile` which specifies a `Python` job to generate a "clean" file of sensor readings for each operational station -
+A `Python` job was created to generate a "clean" file of sensor readings for each source - 
 
-- `pandas` asks the "sensor metadata" database for connection strings to the "readings" database, sensor metadata & user-specified erroneous reading timestamps via `Django` (powered by `mysqlclient`)
-- `pandas` asks the "timeseries" database for readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
-- If specified, `pandas` caches readings to a `pickle` file to skip trips to the timeseries database
-- `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified "flags"
+> `pandas` is an open source data analysis and manipulation tool, built on top of the `Python` programming language.
 
-This is all glued together by a magic `Python` class called `StationRaw`.
+- `pandas` asks the "sensor metadata" database for sensor metadata (calibrations, type of data measured ...), connection strings to the "readings" database, & user-specified timestamps of erroneous readings via `Django` (powered by `mysqlclient`)
+- `pandas` asks the "timeseries" database for sensor readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
+- If specified, `pandas` caches readings to a `pickle` file to skip round trips to the timeseries database
+- `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified timestamps of erroneous readings
+
+This is all glued together by a magic `Python` class called `StationRaw`.  It hides this complexity behind a friendly interface.
 
 I found it next to impossible to fully test this glue.   After a lot of effort, I had only managed to test aspects of this data flow by using "mocking" to replace "timeseries" database with dummy data, so I rolled these out and moved on.
 
@@ -240,33 +250,31 @@ I found it next to impossible to fully test this glue.   After a lot of effort, 
 ## How sensor readings **were accessed**
 
 
-Now for the "visible" part, the web application -
+Now for the "visible" parts -
 
 ![useful-files-to-user-directly.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-directly.svg)
 
-If the people want to access or update data for a particular source,  they can search for the source in the web application & from there they can -
+Data was accessed from either the web application (built using the `Django` web framework), or from a `Jupyter Notebook` server.
 
-- Access "useful" timeseries files of sensor readings
-- Change the calibrations for a particular source's sensor
-- Flag erroneous readings graphically
-- Manually refresh a "useful" export file
+In both cases every time someone wanted to access data for a particular source it was generated on demand, so they had to wait however long it took for the `Python` "glue" to pull everything together.
 
-The web application is built using the `Django` web framework.
+> For usage not related to data access the web application didn't need to do much work since these scenarios are well served by `Django` -
+>- To display a web page it asks a database for the data it needs to render files that the browser needs (`HTML`, `CSS` & `JavaScript`) so it can display a user interface
+>- To serve "static" files like images or `csv` text files it can shares them directly (typically by routing to another tool like `NGINX` or `Apache`)
 
-For most requests to the web application it doesn't need to do much work -
+The web application enabled configuring the data pipeline to change the exported data sets.  One could flag erroneous readings graphically so that they would be filtered out, or change a particular sensor's settings so its readings would be shifted.
 
-- To display a web page it asks the database for the data it needs to display it (`HTML`, `CSS` & `JavaScript`) & enriches them with this data
-- To serve "static" files like images or `csv` text files it shares them directly via `NGINX`
+Back in 2014/15 there was a push internally to do all energy analysis in `Python` in `Jupyter Notebooks`.
 
-"Big" requests, like refreshing a "useful" file export, require much more time to run.
+> `Jupyter Notebook` is a web-based interactive computing platform
 
-When I first joined this team one had to wait however long it took (30 seconds to 5 minutes) for these "big" requests to complete.  So one of the first things I did was create a periodic `Python` job to pre-generate the output of these "big" requests so this wait time could be skipped -
+By the time I started, these notebooks had been largely phased out in favour of dedicated tooling like `Windographer`, and were only used for scenarios not yet covered by such tooling.
 
+To make the lives of the team easier,  they could access and run the notebooks from their browser over a Virtual Private Network (VPN) connection without having to install anything.
 
-![useful-files-to-user-via-database-entry.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-database-entry.svg)
+Since the notebooks relied on the "glue" and the "glue" relied on `Django`, the notebooks shared their environment with the web application.  So if someone tried `!pip install X` they **broke the web application**, or `!del /S C:\*` they **wiped the server**.  If they ran a notebook that uses a lot of RAM or CPU or if multiple people forgot to close their notebooks then the server's resources would run out and the **web application would break**.  Silly things like database or dependency changes or `Django` settings broke the notebook server.
 
-
-One could click a "Manual Refresh" button to save a "flag" to the database marking the file to be re-generated the next time a job was run.  This job could only process one file at a time.
+If any step in the data pipeline broke or went down (for whatever reason) then data access failed,  and someone would have to work out where and why.
 
 
 ---
@@ -321,9 +329,9 @@ How do I find all wind speed readings?  Each column name corresponds to a height
 
 How do I link "metadata" to each column?
 
-I can't easily do this on the database since its hard to express this in the database language `SQL`.
+I can't easily express this in the database language `SQL` so it's hard to link at the database level.
 
-`Python` is much more flexible, and so I can hold both separately and join them when required like -
+`Python` is much more flexible, and so I can import the database data so I can hold both separately and join them as required like ...
 
 ```python
 {
@@ -368,20 +376,33 @@ I can't easily do this on the database since its hard to express this in the dat
 }
 ```
 
-But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources** like ...
+... albeit in a rather complex manner.
+
+But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources**?
+
+Now how do I find all wind speed readings?  
+
+Easy.  I can now don't need to resort to `Python` since I can now join readings to their metadata in the database on matching sensor names -
+
+So ...
 
 | timestamp | sensor_id | value |
 | --- | --- | --- | --- | --- | --- |
 | 2023-11-27 00:00:00 | 1 | 5 |
 | 2023-11-27 00:00:00 | 2 | 60 |
 | 2023-11-27 00:00:00 | 3 | 4 |
-| 2023-11-27 00:00:00 | 3 | 70 |
+| 2023-11-27 00:00:00 | 4 | 70 |
 
-... where `sensor_id` corresponds to the column name.
+... joins with ...
 
-Now how do I find all wind speed readings?  
+| sensor_id | data_type | height | magnetic_orientation |
+| --- | --- | --- | --- | --- | --- |
+| 1 | "Wind Speed" | 1 | 5 |
+| 2 | "Wind Direction" | 2 | 60 |
+| 3 | "Wind Speed" | 3 | 4 |
+| 4 | "Wind Direction" |3 | 70 |
 
-Easy.  I can now don't need `Python` since I can join the readings to their metadata ...
+... on matching `sensor_id` to form ...
 
 | timestamp | sensor_id | value | data_type | height | magnetic_orientation |
 | --- | --- | --- | --- | --- | --- |
@@ -390,7 +411,7 @@ Easy.  I can now don't need `Python` since I can join the readings to their meta
 | 2023-11-27 00:00:00 | 3 | 4 | "Wind Speed" | 10 | 180 |
 | 2023-11-27 00:00:00 | 3 | 70 | "Wind Direction" | 10 | 180 |
 
-... in the database and select "Wind Speed" readings or whatever else I might require.
+... from which I can now filter on "Wind Speed" or do whatever else I might require.
 
 But won't timeseries readings be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
@@ -411,21 +432,27 @@ The web application framework, `Django`, works well with `Postgres` so by switch
 So two databases ...
 
 
-![loggernet-server-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-mssql-database.svg)
+![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
 
 
-... became one ...
+... became two databases ...
 
 
-![loggernet-server-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/loggernet-server-to-timescale-database.svg)
+![source-files-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-timescale-database.svg)
 
 
-Now this didn't come for free -
 
-- I had to figure out how to make the database go fast for importing & querying data.  
-- I needed a more intelligent importer since now all data needs to be transformed into the right format before storing it,  and this process depends on the source.
+
+Now this didn't come for free,  I had to ...
+
+- Build an importer on the web application to parse sensor files and import them to the `TimescaleDB` database
+- Adapt the web application so it would accept sensor files sent from another program (via an "Application Programming Interface" built on `django-rest-framework`)
+- Build an exporter to send files to the web application alongside their file type, since the importer needs to know what type of file it is dealing with before it can import it
+- Build out a user interface on the web application to allow manually uploading files
 
 Having said that,  I figured it was worth the cost.
+
+Now there was one way to import sensor files - the "importer".
 
 
 ---
