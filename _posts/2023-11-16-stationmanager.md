@@ -52,14 +52,15 @@ So how did it work?  And what did I do differently?
 - [Getting started](#getting-started)
 - [The "old" way -](#the-old-way--)
   - [How files **were fetched** from remote loggers](#how-files-were-fetched-from-remote-loggers)
-  - [How logger files **were imported** to a database](#how-logger-files-were-imported-to-a-database)
+  - [How source files **were imported** to a database](#how-source-files-were-imported-to-a-database)
   - [How sensor readings **were cleaned**](#how-sensor-readings-were-cleaned)
   - [How sensor readings **were accessed**](#how-sensor-readings-were-accessed)
 - [The "new" way -](#the-new-way--)
   - [How files **are now fetched** remote sensors](#how-files-are-now-fetched-remote-sensors)
-  - [How sensor files **are now imported** to a database](#how-sensor-files-are-now-imported-to-a-database)
+  - [How source files **are now imported** to a database](#how-source-files-are-now-imported-to-a-database)
   - [How sensor readings **are now cleaned**](#how-sensor-readings-are-now-cleaned)
   - [How sensor readings **are now accessed**](#how-sensor-readings-are-now-accessed)
+- [Closing Remarks](#closing-remarks)
 - [Footnotes](#footnotes)
 
 
@@ -171,7 +172,7 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 <br>
 
 
-## How logger files **were imported** to a database
+## How source files **were imported** to a database
 
 
 ![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
@@ -209,6 +210,8 @@ How about importing multiple files at the same time?  The team used a "Task Queu
 > A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
 ... to queue import jobs and process these jobs using as many workers as available.
+
+> In practice,  the task queue `huey` didn't actually run tasks in parallel as this wasn't well supported on either `Windows` or the task queue database `sqlite`. It only ran one job at a time.
 
 Finally, the importer also handled files uploaded directly to the file server.  To do so the team would have to ...
 
@@ -307,11 +310,11 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 <br>
 
 
-## How sensor files **are now imported** to a database
+## How source files **are now imported** to a database
 
 Now for some heftier changes.
 
-"Sensor readings" are stored in one database, "sensor metadata" in another and the data is processed in `Python`.  The web application needs a database, so why not also use the same database for storing timeseries?
+Sensor readings were stored in one database, sensor metadata in another, and data was processed in `Python`.  The web application needs a database, so why not also use the same database for storing timeseries?
 
 If all data is stored in one database, then why not ask the database to process readings instead of using `Python`?
 
@@ -457,10 +460,13 @@ Now this change didn't come for free,  I had to ...
 - Adapt the web application so it would accept sensor files sent from another program (via an "Application Programming Interface" built on `django-rest-framework`)
 - Build an exporter to send files to the web application alongside their file type, since the importer needs to know what type of file it is dealing with before it can import it
 - Build out a user interface on the web application to allow manually uploading files
+- Rebuild the task queue on `dramatiq`[^TOT]
 
-Having said that,  I figured it was worth the cost.
+[^TOT]: I couldn't figure out how to use the prior task queue engine `huey` to run tasks in parallel on a `Windows` operating system.  Most task queues use `*nix` only features for parallelism so don't bother supporting it.  `Windows` has been a hard constraint on us, and can really limit tooling options.  Thankfully, `dramatiq` supports windows & proved itself to be alternative.
 
-Now there was one way to import sensor files - the "importer".
+> Once again,  a task queue was used to run multiple file import tasks at the same time, except this time the task queue engine `dramatiq` was actually able to do this on `Windows`
+
+Having said all that,  I figured it was worth the cost for the simplicity it enables for the next step - data cleaning.
 
 
 ---
@@ -473,44 +479,37 @@ Now there was one way to import sensor files - the "importer".
 ![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
 
 
-Now that all readings were stored in a single table in a workable format, I could link each sensor reading with its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`, the database language.
+Once all readings for all sensors were stored in a single table, I could link each sensor reading to its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`, the database language.
 
-What was not so straightforward, however, was making file exports fast -
+What was not so straightforward, however, was exporting files in the formats that I wanted -
 
-- Big queries can be slow.  Asking a database for millions of readings can be slow since - unlike `pandas` - databases read from disk as well as memory
+- Big queries can be slow.  Asking a database for millions of readings can be slow since - unlike `pandas` - databases read from disk as well as memory[^WWW].  
+
+[^WWW]: Since they're careful with memory usage, this also means that a single database query won't use up all of a server's memory & crash it
+
 - Reformatting query results in `SQL` is hard, so I decided to query in batches & stream each batch through `Python` to reformat
 
-> Ideally I would reformat readings (from one reading per row to one column per sensor) in `Postgres` to avoid the `Python` performance hit, however, I just found it too hard.  `Postgres` has `crosstab`, but it didn't "fit" this use case (dynamic crosstabulations).  Exporting to formats other than plain text files such as `zip` is also not well supported.
+> Ideally I would have liked to reformat readings in `Postgres` (from one reading per row to one column per sensor) to avoid the `Python` performance hit, however, reformatting is suprisingly hard in `Postgres`.  I wanted to stream from `Postgres` into a `zip` file of multiple text files where each text file represents a different type of sensor (wind speed, direction etc).  I found it too difficult to express this in `SQL`.
 
 How to speed up queries?
 
-I found out the hard way that if you don't have create appropriate indexes for your queries then they will take an age to run.  `TimescaleDB` wrote up [a very helpful blog on this topic](
+I found out the hard way that if you don't create appropriate indexes for your queries then they will take forever to run.  `TimescaleDB` wrote up [a very helpful blog on this topic](
 https://www.timescale.com/blog/use-composite-indexes-to-speed-up-time-series-queries-sql-8ca2df6b3aaa/
-).  What helped me the most was creating indexes, wrapping my queries in `EXPLAIN ANALYSE` & running them which let me see whether or not the query planner actually used them!
+).
+
+> I managed to improve performance quite a lot by wrapping my slow queries in `EXPLAIN ANALYSE` to see whether or not they actually used the indexes I created for them.
 
 How about exporting multiple sources in parallel?
 
-I found that I could use a task queue to run multiple queries at once.
-
-However, this introduces other complexities -
+Once again, I found that I could use a task queue to run multiple queries at once, however, this task wasn't as straightforward since exporting millions of readings to a file is very CPU & RAM intensive -
 
 How many workers should be in the task queue?
 
 > I found estimating the appropriate number of workers for the task queue to be somewhat of a fine art.  I experimented with various numbers while watching resource usage to guess appropriate numbers.
 
-What if the database runs out of connections because the web application plus the workers in the task queue use them up?
+What if the database runs out of connections?
 
-> I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forces reusing connections rather than spinning up new ones.  This helped but `Postgres` was still spinning up parallel workers to answer particular queries if the query planner decided this was necessary, so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to manage connections.
-
-I still had complexity,  but I no longer needed to worry about -
-
-- Gluing databases together
-- Running out of memory - I'm looking at you `pandas`
-- Testing the system end-to-end
-
-At last I was able to fully test the data flow on sample data from all of the logger manufacturers we have used so far,  so I could guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system cannot handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch".
-
-The complexity was at last manageable.
+> The web applications and the workers both needed connections.  I ran into trouble when my task queue workers exhausted the `Postgres` connection pool which caused the connected web application to crash.  I worked out that I could limit the number of connections by routing my `Postgres` connection through a connection pool via `PgBouncer`, which forced reusing connections rather than spinning up new ones.  This helped but wasn't enough.  I found that `Postgres` was still spinning up parallel workers to answer particular queries if the query planner decided this was necessary, so only after fiddling with `max_parallel_workers_per_gather` & `max_parallel_workers` in `postgresql.conf` was I able to bring this under control.
 
 
 ---
@@ -520,7 +519,7 @@ The complexity was at last manageable.
 ## How sensor readings **are now accessed**
 
 
-Now once again for the "visible" part, the web application -
+Now finally back to the "visible" parts -
 
 ![useful-files-to-user-via-task-queue.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-task-queue.svg)
 
@@ -536,6 +535,24 @@ However, the aim of this project was not to provide flashy new things, but rathe
 Has this been achieved?
 
 Only time will tell!
+
+
+---
+<br>
+
+
+# Closing Remarks
+
+
+I still had complexity,  but I no longer needed to worry about -
+
+- Gluing databases together
+- Running out of memory - I'm looking at you `pandas`
+- Testing the system end-to-end
+
+At last I was able to fully test the data flow on sample data from all of the logger manufacturers we have used so far,  so I could guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system cannot handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch".
+
+The complexity was at last manageable.
 
 
 ---
