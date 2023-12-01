@@ -285,7 +285,7 @@ Back in 2014/15 there was a push internally to do all energy analysis in `Python
 
 To make the lives of the team easier,  they could access and run the notebooks from their browser over a Virtual Private Network (VPN) connection without having to install anything.
 
-Since the notebooks relied on the "glue" and the "glue" relied on `Django`, the notebooks shared their environment with the web application.  So if someone tried `!pip install X` they **broke the web application**, or `!del /S C:\*` they **wiped the server**.  If they ran a notebook that uses a lot of RAM or CPU or if multiple people forgot to close their notebooks then the server's resources would run out and the **web application would break**.  Silly things like database or dependency changes or `Django` settings broke the notebook server.
+Since the notebooks relied on the "glue" and the "glue" relied on `Django`, the notebooks shared their environment with the web application.  So if someone tried `!pip install X` they **broke the web application**, or `!del /S C:\*` they **wiped the server**.  If they ran a notebook that uses a lot of RAM or CPU (or if multiple people forgot to close their running notebooks) they could use up the server's resources **bring down the web application & database**.  Silly things like database or dependency changes or `Django` settings broke the notebook server.
 
 If any step in the data pipeline broke or went down (for whatever reason) then data access failed,  and someone would have to work out where and why.
 
@@ -533,6 +533,10 @@ Somewhat sadly for the backend engineer, this bulk of this work is mostly "invis
 It was designed so data is exported to files in advance so data access doesn't require any extra work.  It's as simple as accessing files.
 
 The only "big" requests remaining, like re-exporting a source, are offloaded to a task queue which can process them in parallel without using up all of the server resources.
+
+The `Jupyter Notebook` server asks the web application for data (via an "Application Programming Interface" or API) rather than using its `Python` code directly, so the notebooks are portable.  They can be run locally or on a dedicated multi-user cloud platform.
+
+> So long as they still run on the single-user `Jupyter Notebook` server on the same server as the web application, they can still **bring down the web app and database** down by hogging resources, or if someone runs `!del /S C:\*` and **wipes the server**
 
 
 ---
