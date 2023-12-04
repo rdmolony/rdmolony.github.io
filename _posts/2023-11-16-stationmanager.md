@@ -3,9 +3,20 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-> **TL;DR;** For the last two years I have maintained a system which fetches readings from remote sensors, cleans them & exports them into files that can be used to answer questions like "where to place wind turbines on on a particular site".  By standardising & storing readings in a timeseries database called `TimescaleDB`, I was able to massively simplify both the system & code needed to process them.  Making `TimescaleDB` work well with `Django` was not straightforward but was ultimately worth the effort for the reduction in system complexity it enabled.
+> **TL;DR;** Over 2022/23 I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on a particular site hinges.
 
-> I owe this concept of data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf)
+> By switching to a dedicated timeseries database, `TimescaleDB`[^QWOP] (an extension to the `Postgres`), and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
+
+[^QWOP]: Sensor readings were stored in a `Microsoft SQL Server` database and everything else) in a `MySQL` database
+
+> Adapting the system for `TimescaleDB` was not straightforward, but was ultimately worth the effort:
+>- I reduced the number of components in the system, and so reduced the number of failure modes
+>- I brought an untested data pipeline under test[^QIO]
+>- I replaced ~25,000 lines of code with ~1,000 lines
+
+[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to checking the code ingesting, transforming & saving data **because the system was too hard to test**.
+
+> I owe the inspiration behind data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf), and reducing system complexity to Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
 
 
 Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` -
@@ -34,14 +45,7 @@ Its core value lies in fetching files from remote sensors, transforming them int
 
 Over 2014/15 a brave individual (Paul Hughes) pulled the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
 
-After a year of struggling to keep the show on the road,  I spent a year rebuilding its foundations -
-
-- I brought an untested data pipeline under test[^QIO]
-- I merged five ways of getting data into the system into one
-- I merged two databases with one
-- I replaced ~25,000 lines of code with ~1,000 lines
-
-[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to checking the code ingesting, transforming & saving data **because the system was too hard to test**.
+After a year of struggling to keep the show on the road,  I spent a year rebuilding its foundations.
 
 So how did it work?  And what did I do differently?
 
@@ -74,10 +78,10 @@ It took me 2-3 months before I was "comfortable" to make a code change -
 
 - The server crashed multiple times a week
 - The code was untested[^CAO]
-- I couldn't run the code on my laptop because I didn't have a local developer environment
+- I couldn't run the code on my laptop because there was no setup in place for a local developer environment
 - Not all dependencies (`Python` & non-`Python` 3rd party libraries) in use were documented
-- I had never used the `Python` web framework in which the web application was written (`Django`) or anything similar
-- I didn't know anything about relational databases; which the web application relies on to store data
+- I had never used the `Python` web framework in which the web application was written (`Django`), or anything like it
+- I didn't know anything about relational databases; upon which the web application relies to store data
 
 [^CAO]: Software tests check that code does what it was designed to do.  They provides software engineers with guard-rails, since if an aspect of a system is well tested then you might find out if your change breaks something before you roll it out.
 
@@ -87,7 +91,7 @@ It turns out that the web application was crashing because it was running on `Co
 
 I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (like databases & non-`Python` libraries).
 
-> Later when `Docker` refused to run on my machine due to "networking" issues,  I was forced to rebuild this developer environment in `nix` via [`devenv.sh`](https://devenv.sh/).
+> Later when `Docker` refused to run on my machine due to networking issues,  I was forced to rebuild this developer environment in `nix` via `devenv.sh`.
 
 [^KOO]: `poetry` is a `Python` library for tracking & managing other 3rd party `Python` libraries.  Sometimes `Python` libraries depend on non-`Python` libraries, which `poetry` by design cannot manage, so one has to resort to something like `Docker` (or `conda` or `nix`)
 
@@ -97,7 +101,7 @@ With my new superpower I could now change things.  And so I did.  And something 
 
 Under pressure to fix bugs, I made changes without first covering the system in tests[^QIO],  and I suffered for it.  So I paused all code changes and set about testing the most common usage scenarios.
 
-I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium`, and I automated running this bot automatically before any code change could be accepted via `GitHub Actions`[^PUD] which thanks to the `Docker`[^KAA] work was relatively straightforward.
+I scripted a bot to replicate these scenarios by clicking through a browser via `Selenium`, and I automated running this bot automatically before any code change could be accepted via `GitHub Actions`[^PUD] which by luck was made possible by the work on the local developer environment.
 
 [^PUD]: `GitHub Actions` lets you define a configuration file which specifies actions (`bash` commands) to run in scenarios like "on receiving proposals for code changes"
 
@@ -120,19 +124,17 @@ The pipeline, however, depended on two different databases (`MySQL` & `Microsoft
 ![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
 
 
-I couldn't for the life of me work out how to replace the second database with a "test" database to test this "glue" code (discussed later).
+I couldn't for the life of me work out how to replace the second database with a "test" database to test this "glue" code.
 
 And this "glue" code was only the tip of the iceberg.
 
-It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the "timeseries" database,  any of which going wrong caused issues downstream.  So for a year I (mostly) avoided touching this.
+It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the sensor readings database,  any of which going wrong caused issues downstream.  So for a year I (mostly) avoided touching this.
 
-And there certainly were problems.
+And there certainly were problems which prevented the entire team from doing their job[^HAT].
 
-In one case, a tool that fetches files of sensor readings from remote sensors (`LoggerNet`) went down for a few days.  Upon restoring it we noticed that the "readings" database was missing a few days of readings, and the tool that imports these files to this database (`LNDB`) refused to backfill these missing readings.  So I had to manually import each file for each gap.
+[^HAT]: In one case, a tool that fetches files of sensor readings from remote sensors (`LoggerNet`) went down for a few days.  Upon restoring it we noticed that the "readings" database was missing a few days of readings, and the tool that imports these files to this database (`LNDB`) refused to backfill these missing readings.  So I had to manually import each file for each gap.  In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version.  This update resulted in invalid sensor readings being exported from the system to analysts.  It took us a few weeks to notice & luckily had no impact, but was stressful nonetheless.
 
-In another case,  I attempted to update `pandas`, a 3rd party `Python` library used to "glue" the pipeline together, to the latest version.  This update resulted in invalid sensor readings being exported from the system to analysts.  It took us a few weeks to notice & luckily had no impact, but was stressful nonetheless.
-
-If something doesn't work,  this team can't do their job.  So when I was finally confident that I could rebuild the data pipeline more cleanly on top of better foundations,  I did.
+So when I was finally confident that I could rebuild the data pipeline more cleanly on top of better foundations,  I did.
 
 
 ---
@@ -159,7 +161,7 @@ To fetch files from remote sensors manufactured by `Campbell Scientific`,  it's 
 
 But what about the non-`Campbell Scientific` loggers?
 
-An equivalent tool was custom built in `Python` -
+Nothing off-the-shelf existed, and so an equivalent tool was custom built in `Python` -
 
 Remote sensors are normally in deserts so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the loggers to their cloud-based filesystem.  These files still need to be synced from there to the same place as the `LoggerNet` files so a `Python` job was created to do so.
 
@@ -188,7 +190,7 @@ Most logger files only contain readings for at most a few days,  so all files as
 
 Again, what about the other loggers?
 
-Again, a custom equivalent was built in `Python` -
+Again, nothing off-the-shelf existed, and so a custom equivalent was built in `Python` -
 
 Reading text files & importing them to a database table is surprisingly hard -
 
@@ -344,52 +346,51 @@ How do I link "metadata" to each column?
 
 I can't easily express this in the database language `SQL` so it's hard to link at the database level.
 
-`Python` is much more flexible, and so I can import the database data so I can hold both separately and join them as required like ...
+`Python` is much more flexible, and so I can import the database data so I can hold both separately and join them as required albeit in a rather complex manner[^WOW].
 
-```python
-{
-  "source_1":  {
-    "timeseries": {
-      "timestamp" ["2023-11-27 00:00:00", ...],
-      "Wind Speed 10m 180deg": [5, ...],
-      "Wind Direction 10m 180deg": [60, ...],
-    },
-    "metadata": {
-      "Wind Speed 10m 180deg": {
-        "data_type": "Wind Speed",
-        "magnetic_orientation": 180
-        "height": 10,
+[^WOW]: Like -
+    ```python
+    {
+      "source_1":  {
+        "timeseries": {
+          "timestamp" ["2023-11-27 00:00:00", ...],
+          "Wind Speed 10m 180deg": [5, ...],
+          "Wind Direction 10m 180deg": [60, ...],
+        },
+        "metadata": {
+          "Wind Speed 10m 180deg": {
+            "data_type": "Wind Speed",
+            "magnetic_orientation": 180
+            "height": 10,
+          },
+          "Wind Direction 10m 180deg": {
+            "data_type": "Wind Direction",
+            "magnetic_orientation": 180
+            "height": 10,
+          },
+        }
       },
-      "Wind Direction 10m 180deg": {
-        "data_type": "Wind Direction",
-        "magnetic_orientation": 180
-        "height": 10,
-      },
+      "source_2":  {
+        "timeseries": {
+          "timestamp" ["2023-11-27 00:00:00", ...],
+          "WS10.180": [4, ...],
+          "WD10.180": [70, ...],
+        },
+        "metadata": {
+          "WS10.180": {
+            "data_type": "Wind Speed",
+            "magnetic_orientation": 180
+            "height": 10,
+          },
+          "WD10.180": {
+            "data_type": "Wind Direction",
+            "magnetic_orientation": 180
+            "height": 10,
+          },
+        }
+      }
     }
-  },
-  "source_2":  {
-    "timeseries": {
-      "timestamp" ["2023-11-27 00:00:00", ...],
-      "WS10.180": [4, ...],
-      "WD10.180": [70, ...],
-    },
-    "metadata": {
-      "WS10.180": {
-        "data_type": "Wind Speed",
-        "magnetic_orientation": 180
-        "height": 10,
-      },
-      "WD10.180": {
-        "data_type": "Wind Direction",
-        "magnetic_orientation": 180
-        "height": 10,
-      },
-    }
-  }
-}
-```
-
-... albeit in a rather complex manner.
+    ```
 
 But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources**?
 
