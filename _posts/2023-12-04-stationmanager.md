@@ -3,44 +3,40 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-> **TL;DR;** Over 2022/23 I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on a particular site hinges.
+> **TL;DR;** Over 2022/23 working at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group`, I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.
 
-> By switching to a dedicated timeseries database, `TimescaleDB`[^QWOP] (an extension to the `Postgres`), and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
+> By switching to a dedicated timeseries database, `Postgres/TimescaleDB`[^QWOP], and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
+> Adapting the system was not straightforward, but was ultimately worth the effort:
+>- I reduced the number of components in the system, which reduced the number of failure modes, and the code required to glue them together (roughly ~1,000 lines enabled removing ~25,000 lines)
+>- I could (and did) add tests[^QIO] using representative sample data to guarantee the behaviour of importing and exporting timeseries readings 
 
-[^QWOP]: Sensor readings were stored in a `Microsoft SQL Server` database and everything else) in a `MySQL` database
+[^QWOP]: Sensor readings were stored in a `Microsoft SQL Server` database, & sensor metadata in a `MySQL` database, which both needed to be linked in order to process the readings into useful file output
 
-> Adapting the system for `TimescaleDB` was not straightforward, but was ultimately worth the effort:
->- I reduced the number of components in the system, and so reduced the number of failure modes
->- I brought an untested data pipeline under test[^QIO]
->- I replaced ~25,000 lines of code with ~1,000 lines
-
-[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to checking the code ingesting, transforming & saving data **because the system was too hard to test**.
+[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to check the code ingesting, transforming & saving data **because the system was too hard to test**.
 
 > I owe the inspiration behind data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf), and reducing system complexity to Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
 
 
-Over 2022/23 I worked at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group` -
-
-Its job -
+The system's job -
 
 - Data Access[^RAB]
 
-  [^RAB]: Sensor readings are tracked by loggers.  Loggers save readings to text files.  `StationManager` fetches these files from the remote sensors, amalgamates readings into a file format suitable for other tools & makes these files accessible via a friendly web application user interface.
+  [^RAB]: Sensor readings are tracked by loggers.  Loggers save readings to text files,these files are synced to a server, processed, cleaned, amalgamated, reformatted into useful files, & made accessible via a friendly web application user interface.
 
 - Sensor Health Monitoring[^CHI]
 
-  [^CHI]: The team need to know if the sensors are syncing or if the sensors faulty, so meteorological station managers can go on-site & fix them if needs be.  As well as flagging data quality automatically, it provides a user interface for manually flagging erroneous readings.
+  [^CHI]: The team need to know if loggers are syncing or if a sensor is faulty, so meteorological station managers can go on-site & fix them if needs be.  As well as flagging erroneous readings automatically, the system provides a user interface for manually flagging.
 
 - Exploratory data analysis[^FOO]
   
-  [^FOO]: In cases where a particular analysis is not yet well served by 3rd party tooling,  the team uses a shared `Jupyter Notebook` server to explore & visualise data in `Python`
+  [^FOO]: In cases where a particular type of analysis is not yet well served by 3rd party tooling,  the team uses a shared `Jupyter Notebook` server to explore & visualise data in `Python`
 
 
-Its core value lies in fetching files from remote sensors, transforming them into useful file outputs[^CIE] -
+Its core value lies in fetching files from remote loggers (which record sensor readings) and transforming them into files useful for analysis[^CIE] -
 
-[^CIE]: in most cases a `Windographer` file, a 3rd party tool used to analyze & visualize wind resource data
+[^CIE]: In most cases a `Windographer` file, a 3rd party tool used to analyze & visualize wind resource data
 
-![sensors-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/sensors-to-useful-files.svg)
+![sensors-to-useful-files.svg](/assets/images/2023-12-04-stationmanager/sensors-to-useful-files.svg)
 
 
 Over 2014/15 a brave individual (Paul Hughes) pulled the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
@@ -50,18 +46,18 @@ After a year of struggling to keep the show on the road,  I spent a year rebuild
 So how did it work?  And what did I do differently?
 
 
-> I want to thank my manager of the last two years Romain Molins without whose backing none of this would have been possible.
+> I want to thank my manager of the last two years Romain Molins without whose backing none of this would have been possible
 
 
 - [Getting started](#getting-started)
 - [The "old" way -](#the-old-way--)
   - [How files **were fetched** from remote loggers](#how-files-were-fetched-from-remote-loggers)
-  - [How source files **were imported** to a database](#how-source-files-were-imported-to-a-database)
+  - [How files **were imported** to a database](#how-files-were-imported-to-a-database)
   - [How sensor readings **were cleaned**](#how-sensor-readings-were-cleaned)
   - [How sensor readings **were accessed**](#how-sensor-readings-were-accessed)
 - [The "new" way -](#the-new-way--)
-  - [How files **are now fetched** remote sensors](#how-files-are-now-fetched-remote-sensors)
-  - [How source files **are now imported** to a database](#how-source-files-are-now-imported-to-a-database)
+  - [How files **are now fetched** from remote loggers](#how-files-are-now-fetched-from-remote-loggers)
+  - [How files **are now imported** to a database](#how-files-are-now-imported-to-a-database)
   - [How sensor readings **are now cleaned**](#how-sensor-readings-are-now-cleaned)
   - [How sensor readings **are now accessed**](#how-sensor-readings-are-now-accessed)
 - [Closing Remarks](#closing-remarks)
@@ -89,7 +85,7 @@ First up the crashes.
 
 It turns out that the web application was crashing because it was running on `Command Prompt` on a `Windows Virtual Machine` [in which `Quick-Edit Mode` was enabled](https://stackoverflow.com/questions/30418886/how-and-why-does-quickedit-mode-in-command-prompt-freeze-applications) (the default behaviour).  On Romain's hunch, I turned it off & bingo, no more crashes.
 
-I managed to setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (like databases & non-`Python` libraries).
+I managed to hunt down all depedencies & setup a reproducible developer environment on my laptop,  using `poetry`[^KOO] for `Python` & `Docker Compose`[^KAA] for everything else (like databases & non-`Python` libraries).
 
 > Later when `Docker` refused to run on my machine due to networking issues,  I was forced to rebuild this developer environment in `nix` via `devenv.sh`.
 
@@ -97,7 +93,7 @@ I managed to setup a reproducible developer environment on my laptop,  using `po
 
 [^KAA]: `Docker` lets you define an operating system in a configuration file, it can then spin this up in the background & launch your code in it.  If you share the configuration with others they can use it to spin up the same operating system as you.  `Docker Compose` lets you define configuration file in which multiple systems are defined, typically a database & an operating system.  It will spin up all of these systems & link them to one another.
 
-With my new superpower I could now change things.  And so I did.  And something broke.  And so I patched it.  And something broke.
+With my new superpower I could now change things.  And so I did.  And something broke.  And so I patched it.  And something broke...
 
 Under pressure to fix bugs, I made changes without first covering the system in tests[^QIO],  and I suffered for it.  So I paused all code changes and set about testing the most common usage scenarios.
 
@@ -121,14 +117,16 @@ The pipeline, however, depended on two different databases (`MySQL` & `Microsoft
 [^ROL]: If something takes a long time to run & is run multiple times, it is common to cache it to a file or a database & use the cache to skip reruns
 
 
-![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
+![mssql-database-to-useful-files.svg](/assets/images/2023-12-04-stationmanager/mssql-database-to-useful-files.svg)
 
 
-I couldn't for the life of me work out how to replace the second database with a "test" database to test this "glue" code.
+I couldn't for the life of me work out how to replace the two databases with a "test" database to test this "glue" code well enough to confidently make changes to it[^BOO].
+
+[^BOO]: The "glue" code accesses connection strings (including credentials) for one database from the other database, so I could fill one "test" database with connection strings pointing towards the other "test" database, which once filled with sample test data would do the job.  The glue was now kind of tested but still a mess, so this left me with a flakily tested mess.  The code complexity reflected the system complexity.
 
 And this "glue" code was only the tip of the iceberg.
 
-It was the job of a collection of different tools to fetch sensor readings from remote loggers & import these files to the sensor readings database,  any of which going wrong caused issues downstream.  So for a year I (mostly) avoided touching this.
+It was the job of a collection of different tools to fetch readings from remote loggers & import these files to the sensor readings database,  any of which going wrong caused issues downstream.  So for a year I (mostly) avoided touching this.
 
 And there certainly were problems which prevented the entire team from doing their job[^HAT].
 
@@ -147,10 +145,10 @@ So when I was finally confident that I could rebuild the data pipeline more clea
 ## How files **were fetched** from remote loggers
 
 
-![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
+![sensors-to-loggernet-server.svg](/assets/images/2023-12-04-stationmanager/sensors-to-loggernet-server.svg)
 
 
-To fetch files from remote sensors manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
+To fetch files from remote loggers manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
 
 [^RAT]: At least from a software engineer's perspective, installing loggers & configuring `LoggerNet` is not something I have experience with
 
@@ -161,9 +159,7 @@ To fetch files from remote sensors manufactured by `Campbell Scientific`,  it's 
 
 But what about the non-`Campbell Scientific` loggers?
 
-Nothing off-the-shelf existed, and so an equivalent tool was custom built in `Python` -
-
-Remote sensors are normally in deserts so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the loggers to their cloud-based filesystem.  These files still need to be synced from there to the same place as the `LoggerNet` files so a `Python` job was created to do so.
+Nothing off-the-shelf corresponding to `LoggerNet` existed.  Remote sensors are normally in very remote places (like deserts) so connecting to them is not cheap or easy.  So a 3rd party, [`SmartGrid Technologies`](https://www.igrid.co.za/), was hired to sync files from the non-`Campbell Scientific` loggers to their cloud-based filesystem.  These files still needed to be synced from there so a `Python` job was created to do so.
 
 These files are normally compressed & encrypted.  So another `Python` job was created to automatically unzip them (via `7zip`) & decrypt them (via `ZPH2CSV.exe`) where relevant.
 
@@ -174,10 +170,10 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 <br>
 
 
-## How source files **were imported** to a database
+## How files **were imported** to a database
 
 
-![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
+![source-files-to-mssql-database.svg](/assets/images/2023-12-04-stationmanager/source-files-to-mssql-database.svg)
 
 
 Most logger files only contain readings for at most a few days,  so all files associated with a particular logger need to be amalgamated.
@@ -199,11 +195,7 @@ Reading text files & importing them to a database table is surprisingly hard -
 - What columns represent timestamps?  How are they formatted?
 - Are there columns in the file that are not reflected in the database table?  If so,  the database table must be updated!
 
-`LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.
-
-So the `Python` job had to adapt its database importer to the conventions of each type of logger.
-
-It also tracked which files have been imported & which have not in the "metadata" database" which is linked to the web application, so this import status was "viewable" by the team.
+`LNDB` knows what type of file it has to deal with since all files are `Campbell Scientific`.  The other manufacturers each have their own conventions.  So a `Python` job was needed to adapt to the conventions of each type of logger.  It also tracked which files have been imported & which have not so this import status was "viewable" by the team.
 
 > [`IEA Task 43`](https://github.com/IEA-Task-43/digital_wra_data_standard) is worth a mention here.  This valiant cross-organisational team is pushing to standardise data exchange to help relieve this particular burden.
 
@@ -213,7 +205,9 @@ How about importing multiple files at the same time?  The team used a "Task Queu
 
 ... to queue import jobs and process these jobs using as many workers as available.
 
-> In practice,  the task queue `huey` didn't actually run tasks in parallel as this wasn't well supported on either `Windows` or the task queue database `sqlite`. It only ran one job at a time.
+> In practice,  the task queue `huey` didn't actually run tasks in parallel as this wasn't well supported[^TOT] on either `Windows` or the task queue database `sqlite`. It only ran one job at a time.
+
+[^TOT]: I couldn't figure out how to use the prior task queue engine `huey` to run tasks in parallel on a `Windows` operating system.  Most task queues use `*nix` only features for parallelism so don't bother supporting it.  `Windows` has been a hard constraint on us, and can really limit tooling options.  Thankfully, `dramatiq` supports windows & proved itself to be a good alternative.
 
 Finally, the importer also handled files uploaded directly to the file server.  To do so the team would have to ...
 
@@ -230,32 +224,26 @@ Finally, the importer also handled files uploaded directly to the file server.  
 
 ## How sensor readings **were cleaned**
 
-By default all of the loggers are setup on-site using generic settings typical for that logger manufacturer.  Before these readings can be used the readings need to be "re-calibrated"[^XAR] using settings that are specific to particular settings.  If sensor readings are not re-calibrated using the correct settings then the readings will be off & the analysis relying on them will be wrong.
+Before readings can be used for analysis they need to be processed[^XAR] and cleaned[^POO] every time new data is added to a source.  Oftentimes a particular source might be associated with millions of readings[^YAT], so how was this scaled?
 
-[^XAR]: Wind speed is typically measured by an anemometer.  It counts the number of rotations per second (or frequency) of its spinning cups.  To convert these rotations to wind speed one needs to know an anemometer's "calibrations" which are measured in a wind tunnel.  Mathematically, "calibrations" refer to the slope, `m`, and offset, `c`, in `f(x) = mx + c` where `x` refers to frequency &  `f(x)` to wind speed.
+[^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
 
-Sometimes there are issues with a sensor.  If it requires replacement, it takes time to go on-site and do so.  The values recorded in the interim will be wrong, so they need to be filtered out.
+[^XAR]: For example;  wind speed is typically measured by an anemometer which counts the number of rotations per second (or frequency) of its spinning cups.  To convert these rotations to wind speed one needs to know an anemometer's "calibrations" which are measured in a wind tunnel.  Most of the loggers recorded wind speed using "generic calibrations", and so need to be "re-calibrated" using calibrations that are specific to a particular sensor.  If sensor readings are not re-calibrated using the correct settings then the readings will be off & the analysis relying on them will be wrong.  Mathematically, "calibrations" refer to the slope, `m`, and offset, `c`, in `f(x) = mx + c` where `x` refers to frequency &  `f(x)` to wind speed.
 
-How to re-calibrate & clean millions of readings?
+[^POO]: Sometimes there are issues with a sensor.  If it requires replacement, it takes time to go on-site and do so.  The values recorded in the interim will be wrong, so they need to be filtered out.
 
 This one's a bit hairy.
 
 
-![mssql-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/mssql-database-to-useful-files.svg)
+![mssql-database-to-useful-files.svg](/assets/images/2023-12-04-stationmanager/mssql-database-to-useful-files.svg)
 
 
-A `Python` job was created to generate a "clean" file of sensor readings for each source - 
-
-> `pandas` is an open source data analysis and manipulation tool, built on top of the `Python` programming language.
-
-- `pandas` asks the "sensor metadata" database for sensor metadata (calibrations, type of data measured ...), connection strings to the "readings" database, & user-specified timestamps of erroneous readings via `Django` (powered by `mysqlclient`)
+- `pandas`, a `Python`  data-manipulation library, asks the "sensor metadata" database for sensor metadata (calibrations, type of data measured ...), connection strings to the "readings" database, & user-specified timestamps of erroneous readings via `Django` (powered by `mysqlclient`)
 - `pandas` asks the "timeseries" database for sensor readings via `SQLAlchemy` (powered by `pyodbc` & `ODBC Driver for SQL Server 17`)
 - If specified, `pandas` caches readings to a `pickle` file to skip round trips to the timeseries database
 - `pandas` re-calibrates sensor readings & filters out erroneous ones using rules & user-specified timestamps of erroneous readings
 
-This is all glued together by a magic `Python` class called `StationRaw`.  It hides this complexity behind a friendly interface.
-
-I found it next to impossible to fully test this glue.   After a lot of effort, I had only managed to test aspects of this data flow by using "mocking" to replace "timeseries" database with dummy data, so I rolled these out and moved on.
+This is all glued together by a magic `Python` class called `StationRaw`.  It hides this system complexity behind a friendly interface.
 
 
 ---
@@ -267,27 +255,26 @@ I found it next to impossible to fully test this glue.   After a lot of effort, 
 
 Now for the "visible" parts -
 
-![useful-files-to-user-directly.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-directly.svg)
+![useful-files-to-user-directly.svg](/assets/images/2023-12-04-stationmanager/useful-files-to-user-directly.svg)
 
-Data was accessed from either the web application (built using the `Django` web framework), or from a `Jupyter Notebook` server.
+Data was accessed from either the web application (built using the `Django` web framework), or from a `Jupyter Notebook` server - a web-based interactive computing platform.
 
-In both cases every time someone wanted to access data for a particular source it was generated on demand, so they had to wait however long it took for the `Python` "glue" to pull everything together.
+The web application receives two types of requests; a "normal" request and a "big" request.
 
-> For usage not related to data access the web application didn't need to do much work since these scenarios were well served by `Django` -
->- To display a web page it asks a database for the data it needs to render files that the browser needs (`HTML`, `CSS` & `JavaScript`) so it can display a user interface
->- To serve "static" files like images or `csv` text files it can just send them directly (typically by routing to another tool like `NGINX` or `Apache`)
+Most requests are "normal" requests, and are well served by `Django` -
 
-The web application enabled configuring the data pipeline to change the exported data sets.  One could flag erroneous readings graphically so that they would be filtered out, or change a particular sensor's settings so its readings would be shifted.
+- To display a web page it asks a database for the data it needs to render files that the browser needs (`HTML`, `CSS` & `JavaScript`) so it can display a user interface
+- To serve "static" files like `csv` text files or images it can just send them directly (typically by routing to another tool like `NGINX` or `Apache`)
 
-Back in 2014/15 there was a push internally to do all energy analysis in `Python` in `Jupyter Notebooks` ...
+"Big" requests are harder to handle.  If someone wanted to re-export a particular source then millions of readings needed to be processed to do so, and so they had to wait however long it took for the `Python` "glue" to pull everything together.
 
-> `Jupyter Notebook` is a web-based interactive computing platform
+The web application also enabled configuring the data pipeline to change the exported data sets.  One could flag erroneous readings graphically so that they would be filtered out, or change a particular sensor's settings so the resulting readings would be shifted.
 
-... however, by the time I started, these notebooks had been largely phased out in favour of dedicated tooling like `Windographer`, and were only used for scenarios not yet covered by such tooling.
+Back in 2014/15 there was a push internally to do all energy analysis in `Python` in `Jupyter Notebooks`, however, by the time I started, these notebooks had been largely phased out in favour of dedicated tooling like `Windographer`, and were only used for scenarios not yet covered by such tooling.
 
 To make the lives of the team easier,  they could access and run the notebooks from their browser over a Virtual Private Network (VPN) connection without having to install anything.
 
-Since the notebooks relied on the "glue" and the "glue" relied on `Django`, the notebooks shared their environment with the web application.  So if someone tried `!pip install X` they **broke the web application**, or `!del /S C:\*` they **wiped the server**.  If they ran a notebook that uses a lot of RAM or CPU (or if multiple people forgot to close their running notebooks) they could use up the server's resources **bring down the web application & database**.  Silly things like database or dependency changes or `Django` settings broke the notebook server.
+Since the notebooks relied on the "glue" and the "glue" relied on `Django`, the notebooks shared their environment with the web application.  So if someone tried `!pip install X` they **broke the web application**, or `!del /S C:\*` they **wiped the server**.  If they ran a notebook that used a lot of RAM or CPU, or if multiple people forgot to close their running notebooks, they could use up the server's resources and **bring down the web application & database**.  This coupling also made rolling out updates to the web application harder since they might bring down the notebook server and interrupt a running notebook.
 
 If any step in the data pipeline broke or went down (for whatever reason) then data access failed,  and someone would have to work out where and why.
 
@@ -299,9 +286,9 @@ If any step in the data pipeline broke or went down (for whatever reason) then d
 # The "new" way -
 
 
-## How files **are now fetched** remote sensors
+## How files **are now fetched** from remote loggers
 
-![sensors-to-loggernet-server.svg](/assets/images/2023-11-16-stationmanager/sensors-to-loggernet-server.svg)
+![sensors-to-loggernet-server.svg](/assets/images/2023-12-04-stationmanager/sensors-to-loggernet-server.svg)
 
 There wasn't much more to be done here other than some housekeeping[^RAA] since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
 
@@ -312,7 +299,7 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 <br>
 
 
-## How source files **are now imported** to a database
+## How files **are now imported** to a database
 
 Now for some heftier changes.
 
@@ -392,11 +379,11 @@ I can't easily express this in the database language `SQL` so it's hard to link 
     }
     ```
 
-But what if the readings were instead standardised before storing them so one could instead create **a single table of all sources**?
+But what if the readings were instead standardised before storing them?
 
 Now how do I find all wind speed readings?  
 
-Easy.  I can now don't need to resort to `Python` since I can now join readings to their metadata in the database on matching sensor names -
+Easy.  I now don't need to resort to `Python` since I can now join readings to their metadata in the database on matching sensor names -
 
 So ...
 
@@ -429,13 +416,11 @@ So ...
 
 But won't timeseries readings be really slow to store & query since the table will contain **a lot**[^YAT] of readings?
 
-[^YAT]: Typically each logger records average, standard deviation, minimum & maximum values every 10 minutes for each sensor.  If a logger linked to 20 sensors records for 6 years, then it will be produce `20 sensors * 4 reading types * 6 readings/hour * 24 hours * 365 days * 6 years = 25,228,800 readings`.
-
 Yes.  In a traditional relational database like  `Microsoft SQL Server`, `Postgres` or `MySQL` it will be,  since these databases are designed to store & query new entries row by row.
 
 But what about timeseries databases?
 
-`TimescaleDB` is a extension that enables working with timeseries readings from within the `Postgres`[^NAT] database.  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT].  So provided that its performance was comparable to `Python` I saw it as a viable alternative.
+`TimescaleDB` is an extension to the `Postgres`[^NAT] database that enables working with timeseries readings from within the database.  It provides a special table called a `Hypertable` which speeds up insert & query performance for timeseries tables[^CAT].  So provided that its performance was comparable to `Python` I saw it as a viable alternative.
 
 [^NAT]: It's a very popular database, see [StackOverFlow's 2023 Developer Survey](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-databases)
 
@@ -446,13 +431,13 @@ The web application framework, `Django`, works well with `Postgres` so by switch
 So three databases ...
 
 
-![source-files-to-mssql-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-mssql-database.svg)
+![source-files-to-mssql-database.svg](/assets/images/2023-12-04-stationmanager/source-files-to-mssql-database.svg)
 
 
 ... became, well, two databases ...
 
 
-![source-files-to-timescale-database.svg](/assets/images/2023-11-16-stationmanager/source-files-to-timescale-database.svg)
+![source-files-to-timescale-database.svg](/assets/images/2023-12-04-stationmanager/source-files-to-timescale-database.svg)
 
 
 Now this change didn't come for free,  I had to ...
@@ -477,7 +462,7 @@ Having said all that,  I figured it was worth the cost for the simplicity it ena
 ## How sensor readings **are now cleaned**
 
 
-![timescale-database-to-useful-files.svg](/assets/images/2023-11-16-stationmanager/timescale-database-to-useful-files.svg)
+![timescale-database-to-useful-files.svg](/assets/images/2023-12-04-stationmanager/timescale-database-to-useful-files.svg)
 
 
 Once all readings for all sensors were stored in a single table, I could link each sensor reading to its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`, the database language.
@@ -490,7 +475,7 @@ What was not so straightforward, however, was exporting files in the formats tha
 
 - Reformatting query results in `SQL` is hard, so I decided to query in batches & stream each batch through `Python` to reformat
 
-> Ideally I would have liked to reformat readings in `Postgres` (from one reading per row to one column per sensor) to avoid the `Python` performance hit, however, reformatting is suprisingly hard in `Postgres`.  I wanted to stream from `Postgres` into a `zip` file of multiple text files where each text file represents a different type of sensor (wind speed, direction etc).  I found it too difficult to express this in `SQL`.
+> Ideally I would have liked to reformat readings from one reading per row to one column per sensor in `Postgres` since it's slow to switch to `Python` and inherently more complex.  However, I found reformatting & exporting to files via `COPY TO` suprisingly hard in `Postgres`.  I wanted to stream from `Postgres` into a `zip` file of multiple text files where each text file represents a different type of sensor (wind speed, direction etc).  I just found this too difficult to express this in `SQL`.  It bothered me that exporting a file for a big source could take longer than 15 minutes.
 
 How to speed up queries?
 
@@ -516,9 +501,9 @@ What if the database runs out of connections?[^TWW]
 
 Now finally back to the "visible" parts -
 
-![useful-files-to-user-via-task-queue.svg](/assets/images/2023-11-16-stationmanager/useful-files-to-user-via-task-queue.svg)
+![useful-files-to-user-via-task-queue.svg](/assets/images/2023-12-04-stationmanager/useful-files-to-user-via-task-queue.svg)
 
-Somewhat sadly for the backend engineer, this bulk of this work is mostly "invisible" other than -
+Somewhat sadly for the backend engineer, the bulk of this work is mostly "invisible" other than -
 
 - Faster data access
 - Faster "big" requests
@@ -527,11 +512,9 @@ Somewhat sadly for the backend engineer, this bulk of this work is mostly "invis
 
 It was designed so data is exported to files in advance so data access doesn't require any extra work.  It's as simple as accessing files.
 
-The only "big" requests remaining, like re-exporting a source, are offloaded to a task queue which can process them in parallel without using up all of the server resources.
+The "big" requests, like re-exporting files, are offloaded to a task queue which executes them when it has time to do so.
 
 The `Jupyter Notebook` server asks the web application for data (via an "Application Programming Interface" or API) rather than using its `Python` code directly, so the notebooks are portable.  They can be run locally or on a dedicated multi-user cloud platform.
-
-> So long as they still run on the single-user `Jupyter Notebook` server on the same server as the web application, they can still **bring down the web app and database** down by hogging resources, or if someone runs `!del /S C:\*` and **wipes the server**
 
 
 ---
@@ -549,20 +532,11 @@ After all of that, I still had to manage complexity and so I still had failure m
     - `LoggerNet` or `SmartGrid` go down, so no new sensor readings are fetched
     - A database backup fails
 
-I didn't manage a 100% smooth transition from one system to the other. There were issues, and on more than one occasion the data pipeline went down for a few days[^OOPS].
+I didn't manage a 100% smooth transition from one system to the other. There were issues, and on more than one occasion the data pipeline went down.  I made my best effort at covering the new system in code tests (to check each part was doing what I designed it to do) but it's really hard to cover all scenarios.  Mistakes can't be avoided, but they can be managed.  The only way to remain sane is to find out about a problem as soon as it occurs via email alerts or otherwise[^CWR].  Tests will only get you so far.
 
-[^OOPS]: Issues -
-    - Export tasks were slow,  so the files could take hours to refresh
-    - I couldn't for the life of me work out how to consistently schedule export tasks where a source has recently been updated (so the database has new readings), skipping tasks that are already on the task queue
-    - I made a mistake which resulted in files not being sent to the web application, and another which resulted in API access from the notebooks breaking
+[^CWR]: A **Workflow Orchestration** tools like `prefect` might have given me a lot of comfort, however, I was hesitant to lock us into another cloud product
 
-I made my best effort at covering this implementation in code tests (to check each part was doing what I designed it to do) but it's really hard to cover all scenarios.
-
-Mistakes can't be avoided, but they can be managed.  The only way to remain sane is to find out about a problem as soon as occurs via email alerts[^CWR] or otherwise.  Tests will only get you so far.
-
-[^CWR]: A **Workflow Orchestration** tools like `prefect` might have given me a lot of comfort, however, I was hesitant to lock us into another cloud product.  Even just email alerts would help a lot, however, email servers also requires of whom getting approval can take a lot of time.
-
-On the bright side, I was finally able to fully test the data flow on sample data from all of the logger manufacturers used so far,  so I could (mostly) guarantee the behaviour of importing, processing & exporting.  Moreover,  if a new type of file comes along which the system can't handle,  it can now be added to this "test suite" to be submitted alongside the corresponding code "patch" to ensure that that particular case won't pop up again.
+On the bright side, I was finally able to fully test the data flow on sample data from all of the logger manufacturers used so far,  so I could (mostly) guarantee the behaviour of importing, processing & exporting.  This "test suite" can now be built upon each time an issue with the data pipeline occurs that I hadn't anticipated, and in this manner strengthened.
 
 The aim of this project was not to provide flashy new things, but rather to setup foundations which can be built upon for years to come & upon which a developer can rely on to keep them out of trouble.
 
