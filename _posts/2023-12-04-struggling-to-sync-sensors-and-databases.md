@@ -3,7 +3,7 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-> **TL;DR;** Over 2022/23 working at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group`, I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.
+> **TL;DR;** Over 2022/23 while working at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group`, I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.
 
 > By switching to a dedicated timeseries database, `Postgres/TimescaleDB`[^QWOP], and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
 > Adapting the system was not straightforward, but was ultimately worth the effort:
