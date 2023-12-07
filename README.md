@@ -2,64 +2,64 @@
 
 - [Clone this repository locally](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 
-I use ...
+    I use ...
 
-```sh
-git clone git@github.com:rdmolony/rdmolony.github.io.git
-```
+    ```sh
+    git clone git@github.com:rdmolony/rdmolony.github.io.git
+    ```
 
-... since I prefer to [authenticate with `GitHub` via `SSH`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+    ... since I prefer to [authenticate with `GitHub` via `SSH`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
 - Install [`ruby`](https://ruby-lang.org/) & [`jekyll`](https://jekyllrb.com/)
-  
-> [!NOTE]
-> `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
+    
+    > [!NOTE]
+    > `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
 
-I use ...
+    I use ...
 
-```sh
-nix profile install nixpkgs#ruby
-```
+    ```sh
+    nix profile install nixpkgs#ruby
+    ```
 
-> [!WARNING]
-> As of 23-12-07, `nix` only works on `Linux` & `MacOS`
+    > [!WARNING]
+    > As of 23-12-07, `nix` only works on `Linux` & `MacOS`
 
-... and ...
+    ... and ...
 
-```sh
-gem install bundler jekyll
-```
+    ```sh
+    gem install bundler jekyll
+    ```
 
-... and lastly ...
+    ... and lastly ...
 
-```sh
-bundle install
-```
+    ```sh
+    bundle install
+    ```
 
-> [!WARNING]
-> The first time I set this up [I had a issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
+    > [!WARNING]
+    > The first time I set this up [I had a issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
 
-... to install this project's dependencies from `Gemfile.lock`
+    ... to install this project's dependencies from `Gemfile.lock`
 
 
 - Install [`nodejs`](https://nodejs.org/) & [`tailwindcss`](https://tailwindcss.com/)
 
-> [!NOTE]
-> `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
+    > [!NOTE]
+    > `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
 
 - Install [`foreman`](https://github.com/ddollar/foreman)
 
-I use ...
+    I use ...
 
-```sh
-gem install foreman
-```
+    ```sh
+    gem install foreman
+    ```
 
-> [!NOTE]
-> `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
+    > [!NOTE]
+    > `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
 
 - **Run it** ...
 
-```sh
-foreman start
-```
+    ```sh
+    foreman start
+    ```
