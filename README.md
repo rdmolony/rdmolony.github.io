@@ -34,7 +34,7 @@
     bundle install
     ```
 
-    [^XOO]: The first time I set this up [I had a issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
+    [^XOO]: The first time I set this up [I had issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
 
     ... to install this project's dependencies from `Gemfile.lock`
 
