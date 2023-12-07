@@ -20,7 +20,7 @@
 
 ---
 
-<detail>
+<details>
 <summary>Footnotes</summary>
 
 [^BUNDLER]:
