@@ -20,8 +20,6 @@
 
 ---
 
-## Footnotes
-
 [^BUNDLER]:
     
     Enables installing `gems` from `Gemfile` & `Gemfile.lock` 
