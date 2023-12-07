@@ -1,4 +1,4 @@
-# Installation
+## Installation
 
 - [Clone this repository locally](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)[^GITHUB]
 
@@ -20,6 +20,9 @@
     foreman start
     ```
 
+---
+
+## Footnotes
 
 [^BUNDLER]:
     
