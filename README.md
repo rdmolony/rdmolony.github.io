@@ -14,7 +14,7 @@
     
     [^BOO]: `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
 
-    I use `nix`[^BOT] ...
+    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^BOT] ...
 
     ```sh
     nix profile install nixpkgs#ruby
