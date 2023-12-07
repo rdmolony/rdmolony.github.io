@@ -10,44 +10,40 @@
 
     ... since I prefer to [authenticate with `GitHub` via `SSH`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
-- Install [`ruby`](https://ruby-lang.org/) & [`jekyll`](https://jekyllrb.com/)
+- Install [`ruby`](https://ruby-lang.org/) & [`jekyll`](https://jekyllrb.com/)[^BOO]
     
-> [!NOTE]
-> `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
+    [^BOO]: `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
 
-    I use ...
+    I use `nix`[^BOT] ...
 
     ```sh
     nix profile install nixpkgs#ruby
     ```
 
-> [!WARNING]
-> As of 2023, `nix` only works on `Linux` & `MacOS`
+    [^BOT]: As of 2023, `nix` only works on `Linux` & `MacOS`
 
-    ... and ...
+    ... and `gem` ...
 
     ```sh
     gem install bundler jekyll
     ```
 
-    ... and lastly ...
+    ... and lastly `bundle`[^XOO] ...
 
     ```sh
     bundle install
     ```
 
-> [!WARNING]
-> The first time I set this up [I had a issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
+    [^XOO]: The first time I set this up [I had a issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
 
     ... to install this project's dependencies from `Gemfile.lock`
 
 
-- Install [`nodejs`](https://nodejs.org/) & [`tailwindcss`](https://tailwindcss.com/)
+- Install [`nodejs`](https://nodejs.org/) & [`tailwindcss`](https://tailwindcss.com/)[^HAT]
 
-> [!NOTE]
-> `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
+    [^HAT]: `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
 
-- Install [`foreman`](https://github.com/ddollar/foreman)
+- Install [`foreman`](https://github.com/ddollar/foreman)[^AHH]
 
     I use ...
 
@@ -55,8 +51,7 @@
     gem install foreman
     ```
 
-> [!NOTE]
-> `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
+    [^AHH]: `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
 
 - **Run it** ...
 
