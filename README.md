@@ -10,40 +10,52 @@
 
     ... since I prefer to [authenticate with `GitHub` via `SSH`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
-- Install [`ruby`](https://ruby-lang.org/) & [`jekyll`](https://jekyllrb.com/)[^BOO]
+- Install [`ruby`](https://ruby-lang.org/) & [`jekyll`](https://jekyllrb.com/)[^JEKYLL]
     
-    [^BOO]: `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
+    [^JEKYLL]: `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
 
-    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^BOT] ...
+    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^NIX] ...
 
     ```sh
     nix profile install nixpkgs#ruby
     ```
 
-    [^BOT]: As of 2023, `nix` only works on `Linux` & `MacOS`
+    [^NIX]: As of 2023, `nix` only works on `Linux` & `MacOS`
 
-    ... and `gem` ...
+    ... and thus `gem` ...
 
     ```sh
     gem install bundler jekyll
     ```
 
-    ... and lastly `bundle`[^XOO] ...
+    ... and thus `bundler`[^BUNDLER] ...
 
     ```sh
     bundle install
     ```
 
-    [^XOO]: The first time I set this up [I had issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
+    [^BUNDLER]: The first time I set this up [I had issues](https://github.com/rdmolony/til/blob/2b968e9e27516516c1afdbd979a4e183f640acae/til/fix-gem-not-installed-on-my-machine.md) which I fixed via `bundle config set --global path "$HOME/.bundle/"`
 
     ... to install this project's dependencies from `Gemfile.lock`
 
 
-- Install [`nodejs`](https://nodejs.org/) & [`tailwindcss`](https://tailwindcss.com/)[^HAT]
+- Install [`nodejs`](https://nodejs.org/) & [`tailwindcss`](https://tailwindcss.com/)[^TAILWIND]
 
-    [^HAT]: `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
+    [^TAILWIND]: `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
 
-- Install [`foreman`](https://github.com/ddollar/foreman)[^AHH]
+    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^NIX] ...
+
+    ```sh
+    nix profile install nixpkgs#nodejs
+    ```
+
+    ... and thus `npm` ...
+
+    ```sh
+    npm install -D tailwindcss
+    ```
+
+- Install [`foreman`](https://github.com/ddollar/foreman)[^FOREMAN]
 
     I use ...
 
@@ -51,7 +63,7 @@
     gem install foreman
     ```
 
-    [^AHH]: `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
+    [^FOREMAN]: `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`.  Note that [it is not recommended to add `foreman` to a `Gemfile`](https://github.com/ddollar/foreman)
 
 - **Run it** ...
 
