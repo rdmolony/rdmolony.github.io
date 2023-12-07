@@ -4,7 +4,7 @@
 
 - Install [`ruby`](https://ruby-lang.org/)[^RUBY] & thus [`jekyll`](https://jekyllrb.com/)[^JEKYLL] & [`bundler`](https://github.com/rubygems/bundler)[^BUNDLER]
     
-- Install project `gems` via `bundler` from `Gemfile.lock`
+- Install this project's `gems` via `bundler` from `Gemfile.lock`
 
     ```sh
     bundle install
@@ -25,6 +25,8 @@
     
     Enables installing `gems` from `Gemfile` & `Gemfile.lock` 
 
+    I use `gem`[^RUBY] ...
+
     ```sh
     gem install bundler
     ```
@@ -35,13 +37,15 @@
 
     `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
 
+    I use `gem`[^RUBY] ...
+
     ```sh
     gem install foreman
     ```
 
 [^GITHUB]:
 
-    I use ...
+    I use [`git clone`](https://git-scm.com/) ...
 
     ```sh
     git clone git@github.com:rdmolony/rdmolony.github.io.git
@@ -52,6 +56,8 @@
 [^JEKYLL]:
     
     `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
+
+    I use `gem`[^RUBY] ...
 
     ```sh
     gem install jekyll
@@ -79,9 +85,9 @@
 
 [^TAILWIND]:
 
-    `tailwindcss` transforms enables composing classes in `HTML` elements to make them look fancy
+    `tailwindcss` makes it so much easier to style a web page,  you just add multiple `tailwind` classes to `HTML` elements & `tailwindcss` combines these classes together to define things font size, type, color
 
-    ... and thus `npm` ...
+    I use `npm`[^NODEJS] ...
 
     ```sh
     npm install -D tailwindcss
