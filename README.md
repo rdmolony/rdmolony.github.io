@@ -2,7 +2,7 @@
 
 - [Clone this repository locally](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)[^GITHUB]
 
-- Install [`ruby`](https://ruby-lang.org/)[^RUBY] & thus [`jekyll`](https://jekyllrb.com/)[^JEKYLL] & [`bundler`](https://github.com/rubygems/bundler)[^BUNDLER]
+- Install [`ruby`](https://ruby-lang.org/)[^RUBY] & thus [`jekyll`](https://jekyllrb.com/)[^JEKYLL], [`bundler`](https://github.com/rubygems/bundler)[^BUNDLER] & [`foreman`](https://github.com/ddollar/foreman)[^FOREMAN]
     
 - Install this project's `gems` via `bundler` from `Gemfile.lock`
 
@@ -10,9 +10,7 @@
     bundle install
     ```
 
-- Install [`nodejs`](https://nodejs.org/)[^NODEJS] & [`tailwindcss`](https://tailwindcss.com/)[^TAILWIND]
-
-- Install [`foreman`](https://github.com/ddollar/foreman)[^FOREMAN]
+- Install [`nodejs`](https://nodejs.org/)[^NODEJS] & thus [`tailwindcss`](https://tailwindcss.com/)[^TAILWIND]
 
 - **Run it** ...
 
@@ -28,7 +26,7 @@
     
     Enables installing `gems` from `Gemfile` & `Gemfile.lock` 
 
-    I use `gem`[^RUBY] ...
+    I use [`gem`](https://ruby-lang.org/) ...
 
     ```sh
     gem install bundler
@@ -40,7 +38,7 @@
 
     `foreman` enables running multiple services at the same time - in this case `jekyll` & `tailwindcss`
 
-    I use `gem`[^RUBY] ...
+    I use [`gem`](https://ruby-lang.org/) ...
 
     ```sh
     gem install foreman
@@ -60,19 +58,17 @@
     
     `jekyll` transforms `Markdown` files into `HTML/CSS/JS` which the browser can understand
 
-    I use `gem`[^RUBY] ...
+    I use [`gem`](https://ruby-lang.org/) ...
 
     ```sh
     gem install jekyll
     ```
 
-[^NIX]: As of 2023, `nix` only works on `Linux` & `MacOS`
-
 [^NODEJS]:
 
     A `JavaScript` runtime
 
-    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^NIX] ...
+    I use [`nix`](https://github.com/DeterminateSystems/nix-installer) ...
 
     ```sh
     nix profile install nixpkgs#nodejs
@@ -80,7 +76,7 @@
 
 [^RUBY]:
 
-    I use [`nix`](https://github.com/DeterminateSystems/nix-installer)[^NIX] ...
+    I use [`nix`](https://github.com/DeterminateSystems/nix-installer) ...
 
     ```sh
     nix profile install nixpkgs#ruby
@@ -90,7 +86,7 @@
 
     `tailwindcss` makes it so much easier to style a web page,  you just add multiple `tailwind` classes to `HTML` elements & `tailwindcss` combines these classes together to define things font size, type, color
 
-    I use `npm`[^NODEJS] ...
+    I use [`npm`](https://nodejs.org/) ...
 
     ```sh
     npm install -D tailwindcss
