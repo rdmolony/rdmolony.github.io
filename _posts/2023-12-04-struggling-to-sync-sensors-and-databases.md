@@ -14,7 +14,7 @@ Adapting the system was not straightforward, but was ultimately worth the effort
   - I reduced the number of components in the system, which reduced the number of failure modes, and the lines of code required to glue them together - adding ~1,000 lines enabled removing ~25,000
   - I could (and did) add tests using representative sample data to guarantee the behaviour of importing and exporting timeseries readings 
 
-I owe much to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf) & Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
+I owe much of the motivation behind this project to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf) & Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
 
 {% endcapture %}
 

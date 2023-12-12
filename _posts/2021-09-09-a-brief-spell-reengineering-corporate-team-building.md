@@ -5,7 +5,7 @@ layout: post
 
 Over 2018/19 my 8 person Trinity / University of Sao Paolo engineering team was challenged by an Irish company called [Orangeworks](https://www.orangeworks.ie/) with an unusual request -
 
-"How might we redefine the corporate team building experience for 2030?"
+> "How might we redefine the corporate team building experience for 2030?"
 
 What does a team of mechanical/software/electrical engineering students knows about team building?  The question should be rather,  what fun thing can we build that also satisfies the brief?
 
