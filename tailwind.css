@@ -5,13 +5,16 @@
 @layer base {
   body {
     @apply bg-slate-200;
-    @apply max-w-xl mx-auto mt-12;
+    @apply max-w-xl mx-auto mt-12 p-4;
   }
   p {
     @apply m-3;
   }
   ul {
     @apply list-disc pl-8;
+  }
+  ol {
+    @apply list-decimal pl-8;
   }
   code {
     @apply bg-blue-200 p-1 rounded-lg
@@ -36,5 +39,14 @@
   }
   hr {
     @apply h-px border-0 m-8 bg-slate-400 shadow-lg
+  }
+  table {
+    @apply m-4 table-auto border-collapse border border-slate-400 text-center overflow-auto overflow-x-scroll
+  }
+  th {
+    @apply p-3 border border-slate-400
+  }
+  td {
+    @apply p-3 border border-slate-300
   }
 }

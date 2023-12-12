@@ -447,6 +447,7 @@ body {
   margin-right: auto;
   margin-top: 3rem;
   max-width: 36rem;
+  padding: 1rem;
 }
 
 p {
@@ -455,6 +456,11 @@ p {
 
 ul {
   list-style-type: disc;
+  padding-left: 2rem;
+}
+
+ol {
+  list-style-type: decimal;
   padding-left: 2rem;
 }
 
@@ -522,6 +528,32 @@ hr {
   --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+table {
+  margin: 1rem;
+  table-layout: auto;
+  border-collapse: collapse;
+  overflow: auto;
+  overflow-x: scroll;
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(148 163 184 / var(--tw-border-opacity));
+  text-align: center;
+}
+
+th {
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(148 163 184 / var(--tw-border-opacity));
+  padding: 0.75rem;
+}
+
+td {
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(203 213 225 / var(--tw-border-opacity));
+  padding: 0.75rem;
 }
 
 *, ::before, ::after {
@@ -769,17 +801,12 @@ hr {
   padding: 0px;
 }
 
-.p-2 {
-  padding: 0.5rem;
-}
-
 .p-4 {
   padding: 1rem;
 }
 
-.px-8 {
-  padding-left: 2rem;
-  padding-right: 2rem;
+.pl-0 {
+  padding-left: 0px;
 }
 
 .text-center {
@@ -798,10 +825,6 @@ hr {
 
 .font-bold {
   font-weight: 700;
-}
-
-.text-opacity-100 {
-  --tw-text-opacity: 1;
 }
 
 .shadow-lg {
