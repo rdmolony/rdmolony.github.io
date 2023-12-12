@@ -49,7 +49,7 @@ After a year of struggling to keep the show on the road,  I spent a year rebuild
 So how did it work?  And what did I do differently?
 
 
-> I want to thank my manager of the last two years Romain Molins without whose backing none of this would have been possible
+> I want to thank my manager of the last two years, Romain Molins, without whose backing none of this would have been possible
 
 
 - [Getting started](#getting-started)
@@ -68,7 +68,7 @@ So how did it work?  And what did I do differently?
 
 
 ---
-<br>
+
 
 
 # Getting started
@@ -139,7 +139,7 @@ So when I was finally confident that I could rebuild the data pipeline more clea
 
 
 ---
-<br>
+
 
 
 # The "old" way -
@@ -170,7 +170,7 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 
 
 ---
-<br>
+
 
 
 ## How files **were imported** to a database
@@ -222,7 +222,7 @@ Finally, the importer also handled files uploaded directly to the file server.  
 
 
 ---
-<br>
+
 
 
 ## How sensor readings **were cleaned**
@@ -250,7 +250,7 @@ This is all glued together by a magic `Python` class called `StationRaw`.  It hi
 
 
 ---
-<br>
+
 
 
 ## How sensor readings **were accessed**
@@ -283,7 +283,7 @@ If any step in the data pipeline broke or went down (for whatever reason) then d
 
 
 ---
-<br>
+
 
 
 # The "new" way -
@@ -299,7 +299,7 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 
 
 ---
-<br>
+
 
 
 ## How files **are now imported** to a database
@@ -459,7 +459,7 @@ Having said all that,  I figured it was worth the cost for the simplicity it ena
 
 
 ---
-<br>
+
 
 
 ## How sensor readings **are now cleaned**
@@ -496,7 +496,7 @@ What if the database runs out of connections?[^TWW]
 
 
 ---
-<br>
+
 
 
 ## How sensor readings **are now accessed**
@@ -521,7 +521,7 @@ The `Jupyter Notebook` server asks the web application for data (via an "Applica
 
 
 ---
-<br>
+
 
 
 # Closing Remarks
@@ -549,7 +549,7 @@ Only time will tell!
 
 
 ---
-<br>
+
 
 
 # Footnotes

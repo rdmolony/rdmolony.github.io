@@ -3,7 +3,12 @@ title: "From Excel to Visualization via Ploomber"
 layout: post
 ---
 
-> I've since rewritten & expanded upon this experience in [Struggling to do reproducible data analytics in Python]({% link _posts/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python.md %})
+{% capture tldr %}
+
+I've since rewritten & expanded upon this experience in [Struggling to do reproducible data analytics in Python]({% post_url 2023-11-09-struggling-to-do-reproducible-data-analytics-in-python %})
+{% endcapture %}
+
+{% include tldr.html content=tldr %}
 
 > This blog post was originally published on [https://ploomber.io/blog/codema/](https://ploomber.io/blog/codema/)
 
@@ -19,7 +24,7 @@ This short article is relevant to you if ...
 > Thanks Ido Michael ([@idomic](https://github.com/idomic)) for reviewing this article!
 
 ---
-<br>
+
 
 My team & I wanted to model the Dublin energy system for the purposes of energy planning.
 

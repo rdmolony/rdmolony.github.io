@@ -23,7 +23,7 @@ Eventually we converged on a monstrosity that looked fancy, was fun to build and
 For our troubles we got a free trip to Sao Paulo to brainstorm/carinval with our brazilian team mates & an exhibition/Yosemite-trip in California & (somehow) a nomination as [a standout 2018/19 project](https://sugar-network.org/projects/)[^2]
 
 ---
-<br>
+
 
 [^1]: Quite a mouthful
 [^2]: I guess it's looks nice :)

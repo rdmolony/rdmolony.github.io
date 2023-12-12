@@ -8,8 +8,13 @@ tags:
  - Docker
 ---
 
-> TL;DR;  Learning how to do arithmetic in `pandas` wasn't hard.  Glueing together a reproducible data pipeline was.  My task wasn't rocket science, but combining `Python` tooling together felt like it.
+{% capture tldr %}
 
+Learning how to do arithmetic in `pandas` wasn't hard.  Glueing together a reproducible data pipeline was.  My task wasn't rocket science, but combining `Python` tooling together felt like it.
+
+{% endcapture %}
+
+{% include tldr.html content=tldr %}
 
 Over 2020/21 I was at working at `Codema` on the `Dublin Region Energy Masterplan`.  
 
@@ -33,7 +38,7 @@ Why?
 
 
 ---
-<br>
+
 
 # Tools?
 
@@ -82,7 +87,7 @@ Does this power justify the additional complexity?
 
 
 ---
-<br>
+
 
 # Downloading data?
 
@@ -119,7 +124,7 @@ A bit simpler.
 
 
 ---
-<br>
+
 
 # Wrangling data?
 
@@ -146,7 +151,7 @@ This worked fine so long as the combined datasets fit into memory!  If it didn't
 
 
 ---
-<br>
+
 
 # Visualising data?
 
@@ -171,7 +176,7 @@ I also tried to create a desktop application so we could use the end-user's reso
 
 
 ---
-<br>
+
 
 # Gluing Python functions together?
 
@@ -196,7 +201,7 @@ I first found `prefect` & really enjoyed the error messages it provided on faili
 
 
 ---
-<br>
+
 
 # Tracking changes?
 
@@ -220,7 +225,7 @@ Having said that, it did eventually grow on me after developing a decent mental 
 
 
 ---
-<br>
+
 
 # Sharing a developer environment?
 
@@ -236,7 +241,7 @@ I ended up using both `conda` & `Docker`.  Both could be used for sharing a loca
 
 
 ---
-<br>
+
 
 [^1]: I first tried [dgorissen/pycel](https://github.com/dgorissen/pycel) but couldn't make it work with this spreadsheet.  Even if I had managed this, it wouldn't have generated a `numpy` based model so wouldn't have scaled well to thousands of buildings.
 [^2]: I helped the [`Fugue`](https://github.com/fugue-project/fugue) team with their documentation as I tried it & liked it.  I felt it alleviated some of my pain around `Python` data wrangling by providing a single interface that runs on multiple engines like `pandas`, `Dask`, `Spark`.
