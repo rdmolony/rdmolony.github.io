@@ -1,0 +1,32 @@
+{% assign image_width = include.image_width | default: 'max-w-sm' %}
+
+<div>
+
+  <a href="{{ site.url }}">
+    <img class="bg-slate-300 {{ image_width }} mx-auto aspect-auto rounded-xl shadow-lg" src="/assets/images/headshot.png" alt="headshot.png">
+  </a>
+
+  <div class="mb-2 text-center">
+    {%- if site.github_username -%}
+      <a href="https://github.com/{{ site.github_username| cgi_escape | escape }}">
+        <img class="inline-block h-4" src="/assets/images/icons/github.svg" alt="github.svg">
+      </a>
+    {%- endif -%}
+    {%- if site.linkedin_username -%}
+      <a href="https://www.linkedin.com/in/{{ site.linkedin_username| cgi_escape | escape }}">
+        <img class="inline-block w-5" src="/assets/images/icons/linkedin.svg" alt="linkedin.svg">
+      </a>
+    {%- endif -%}
+    {%- if site.email -%}
+      <a class="u-email" href="mailto:{{ site.email }}">
+        <img class="inline-block h-4" src="/assets/images/icons/email.svg" alt="email.svg">
+      </a>
+    {%- endif -%}
+    {%- if site.rss -%}
+      <a href="{{ 'feed.xml' | relative_url }}">
+        <img class="inline-block h-3 ml-1" src="/assets/images/icons/rss.svg" alt="rss.svg">
+      </a>
+    {%- endif -%}
+  </div>
+
+</div>

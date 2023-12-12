@@ -3,19 +3,22 @@ title: "Struggling to sync sensors & databases"
 layout: post
 ---
 
-> **TL;DR;** Over 2022/23 while working at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group`, I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.
+{% capture tldr %}
 
-> By switching to a dedicated timeseries database, `Postgres/TimescaleDB`[^QWOP], and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
-> Adapting the system was not straightforward, but was ultimately worth the effort:
->- I reduced the number of components in the system, which reduced the number of failure modes, and the code required to glue them together (roughly ~1,000 lines enabled removing ~25,000 lines)
->- I could (and did) add tests[^QIO] using representative sample data to guarantee the behaviour of importing and exporting timeseries readings 
+Over 2022/23 while working at `Mainstream Renewable Power` on an internal web application called `StationManager` used by the `Energy Analysis Group`, I maintained a "data pipeline" which fetches sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.
 
-[^QWOP]: Sensor readings were stored in a `Microsoft SQL Server` database, & sensor metadata in a `MySQL` database, which both needed to be linked in order to process the readings into useful file output
+By switching to a dedicated timeseries database, `Postgres/TimescaleDB`, and standardising all readings into a consistent format before storage, I was able to greatly simplify both the system & the code needed to process them.
 
-[^QIO]: Test code that checks that other code does what it was designed to do.  There were no tests to check the code ingesting, transforming & saving data **because the system was too hard to test**.
+Adapting the system was not straightforward, but was ultimately worth the effort:
 
-> I owe the inspiration behind data "standardisation" to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf), and reducing system complexity to Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
+  - I reduced the number of components in the system, which reduced the number of failure modes, and the lines of code required to glue them together - adding ~1,000 lines enabled removing ~25,000
+  - I could (and did) add tests using representative sample data to guarantee the behaviour of importing and exporting timeseries readings 
 
+I owe much to Hadley Wickham's ["Tidy Data" paper](https://vita.had.co.nz/papers/tidy-data.pdf) & Dan McKinley's [Choose Boring Technology](https://boringtechnology.club/)
+
+{% endcapture %}
+
+{% include tldr.html content=tldr %}
 
 The system's job -
 
