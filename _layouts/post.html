@@ -1,0 +1,33 @@
+---
+layout: default
+---
+
+{% include bio.html %}
+
+<hr>
+
+<article itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="text-center">
+    <h1 class="text-3xl" itemprop="name headline">{{ page.title | escape }}</h1>
+    <p class="text-l" >
+      <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+        {{ page.date | date: date_format }}
+      </time>
+      {%- if page.author -%}
+        <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <span itemprop="name">{{ page.author }}</span>
+        </span>
+      {%- endif -%}</p>
+  </header>
+
+  <div class="relative" itemprop="articleBody">
+    {{ content }}
+  </div>
+
+  <a href="{{ page.url | relative_url }}" hidden></a>
+</article>
+
+{% include about.html %}
+{% include footer.html %}
