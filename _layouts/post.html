@@ -2,7 +2,9 @@
 layout: default
 ---
 
-{% include bio.html image_width='w-32' %}
+{% include bio.html %}
+
+<hr>
 
 <article itemscope itemtype="http://schema.org/BlogPosting">
 
@@ -20,7 +22,7 @@ layout: default
       {%- endif -%}</p>
   </header>
 
-  <div itemprop="articleBody">
+  <div class="relative" itemprop="articleBody">
     {{ content }}
   </div>
 

@@ -1,13 +1,18 @@
 ---
 layout: default
 ---
+
+{% include bio.html %}
+
+<hr>
+
 <article>
 
   <header>
     <h1>{{ page.title | escape }}</h1>
   </header>
 
-  <div>
+  <div class="relative">
     {{ content }}
   </div>
 

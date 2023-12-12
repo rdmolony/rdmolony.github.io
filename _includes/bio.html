@@ -1,9 +1,7 @@
-{% assign image_width = include.image_width | default: 'max-w-xs' %}
-
-<div>
+<div class="text-center">
 
   <a class="hover:disabled" href="{{ site.url }}">
-    <img class="box-background {{ image_width }} mx-auto mb-1 aspect-auto rounded-xl shadow-lg hover:bg-blue-300" src="/assets/images/headshot.png" alt="headshot.png">
+    <img class="box-background w-60 mx-auto mb-1 aspect-auto rounded-xl shadow-lg" src="/assets/images/headshot.png" alt="headshot.png">
   </a>
 
   {% include social.html %}
