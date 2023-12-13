@@ -66,6 +66,6 @@
     @apply rounded-lg
   }
   div.highlighter-rouge {
-    @apply rounded-lg ml-3
+    @apply ml-3 text-xs
   }
 }

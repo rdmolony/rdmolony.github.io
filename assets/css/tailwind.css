@@ -584,7 +584,8 @@ div.highlighter-rouge, div.highlight, pre.highlight {
 
 div.highlighter-rouge {
   margin-left: 0.75rem;
-  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 *, ::before, ::after {
