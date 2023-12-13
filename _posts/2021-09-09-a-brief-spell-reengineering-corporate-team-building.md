@@ -1,5 +1,5 @@
 ---
-title: "A brief spell re-engineering corporate team building"
+title: "A Brief Spell Re-engineering Corporate Team Building"
 layout: post
 ---
 

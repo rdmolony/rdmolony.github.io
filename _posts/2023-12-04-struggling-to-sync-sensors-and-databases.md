@@ -1,5 +1,5 @@
 ---
-title: "Struggling to sync sensors & databases"
+title: "Struggling to Sync Sensors & Databases"
 layout: post
 ---
 
