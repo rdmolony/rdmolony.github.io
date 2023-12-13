@@ -18,6 +18,15 @@
     foreman start
     ```
 
+## Notes
+
+- Generate `assets/css/syntax.css` via ...
+
+```sh
+bundle exec rougify style github.dark > assets/css/syntax.css
+```
+
+
 ---
 
 <details>

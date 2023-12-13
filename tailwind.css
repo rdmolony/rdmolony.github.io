@@ -59,5 +59,13 @@
   h3 {
     @apply text-lg
   }
-  
+  pre.highlight {
+    @apply p-3
+  }
+  div.highlighter-rouge, div.highlight, pre.highlight {
+    @apply rounded-lg
+  }
+  div.highlighter-rouge {
+    @apply rounded-lg ml-3
+  }
 }
