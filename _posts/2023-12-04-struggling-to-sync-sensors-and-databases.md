@@ -3,7 +3,7 @@ title: "Struggling to Sync Sensors & Databases"
 layout: "post"
 description: |
   Some thoughts on adapting a pre-existing "data syncing" system to improve its maintainability & reliability
-image: /assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.svg
+image: /assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.png
 ---
 
 {% capture tldr %}
