@@ -55,6 +55,8 @@ So how did it work?  And what did I do differently?
 > I want to thank my manager of the last two years, Romain Molins, without whose backing none of this would have been possible
 
 
+{% capture table_of_contents %}
+
 - [Getting started](#getting-started)
 - [The "old" way -](#the-old-way--)
   - [How files **were fetched** from remote loggers](#how-files-were-fetched-from-remote-loggers)
@@ -68,6 +70,9 @@ So how did it work?  And what did I do differently?
   - [How sensor readings **are now accessed**](#how-sensor-readings-are-now-accessed)
 - [Closing Remarks](#closing-remarks)
 - [Footnotes](#footnotes)
+
+{% endcapture %}
+{% include toc.html content=table_of_contents %}
 
 
 ---

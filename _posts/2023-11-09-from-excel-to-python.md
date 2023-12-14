@@ -35,6 +35,8 @@ Achieving this in practice was hard.
 
 Why?
 
+{% capture table_of_contents %}
+
 - [Tools?](#tools)
 - [Downloading data?](#downloading-data)
 - [Wrangling data?](#wrangling-data)
@@ -44,6 +46,10 @@ Why?
 - [Sharing a developer environment?](#sharing-a-developer-environment)
 - [Closing Remarks](#closing-remarks)
 - [Footnotes](#footnotes)
+
+{% endcapture %}
+{% include toc.html content=table_of_contents %}
+
 
 
 ---
