@@ -40,7 +40,6 @@ linkedin_username: rowan-molony-113bbb155
 rss: rss
 
 # Build settings
-theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
