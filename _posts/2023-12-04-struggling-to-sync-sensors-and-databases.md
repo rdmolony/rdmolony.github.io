@@ -3,7 +3,7 @@ title: "Struggling to Sync Sensors & Databases"
 layout: "post"
 description: |
   Some thoughts on adapting a pre-existing "data syncing" system to improve its maintainability & reliability
-image: /assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.png
+image: /assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.png
 ---
 
 {% capture tldr %}
@@ -42,7 +42,7 @@ Its core value lies in fetching files from remote loggers (which record sensor r
 
 [^CIE]: In most cases a `Windographer` file, a 3rd party tool used to analyze & visualize wind resource data
 
-![1-sensors-to-useful-files.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.svg)
+![1-sensors-to-useful-files.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/1-sensors-to-useful-files.svg)
 
 
 Over 2014/15 a brave individual (Paul Hughes) pulled the bulk of a system together.  It then passed through the hands of three more people (Sean Hayes, Andrew McGregor & Tomasz Jama-Lipa) before reaching me,  with each person adding their own twist to keep it alive & make it useful.
@@ -123,7 +123,7 @@ The pipeline, however, depended on two different databases (`MySQL` & `Microsoft
 [^ROL]: If something takes a long time to run & is run multiple times, it is common to cache it to a file or a database & use the cache to skip reruns
 
 
-![2-mssql-database-to-useful-files.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/2-mssql-database-to-useful-files.svg)
+![2-mssql-database-to-useful-files.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/2-mssql-database-to-useful-files.svg)
 
 
 I couldn't for the life of me work out how to replace the two databases with a "test" database to test this "glue" code well enough to confidently make changes to it[^BOO].
@@ -151,7 +151,7 @@ So when I was finally confident that I could rebuild the data pipeline more clea
 ## How files **were fetched** from remote loggers
 
 
-![3-sensors-to-loggernet-server.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
+![3-sensors-to-loggernet-server.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
 
 
 To fetch files from remote loggers manufactured by `Campbell Scientific`,  it's quite straightforward[^RAT] ...
@@ -179,7 +179,7 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 ## How files **were imported** to a database
 
 
-![4-source-files-to-mssql-database.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/4-source-files-to-mssql-database.svg)
+![4-source-files-to-mssql-database.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/4-source-files-to-mssql-database.svg)
 
 
 Most logger files only contain readings for at most a few days,  so all files associated with a particular logger need to be amalgamated.
@@ -241,7 +241,7 @@ Before readings can be used for analysis they need to be processed[^XAR] and cle
 This one's a bit hairy.
 
 
-![2-mssql-database-to-useful-files.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/2-mssql-database-to-useful-files.svg)
+![2-mssql-database-to-useful-files.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/2-mssql-database-to-useful-files.svg)
 
 
 - `pandas`, a `Python`  data-manipulation library, asks the "sensor metadata" database for sensor metadata (calibrations, type of data measured ...), connection strings to the "readings" database, & user-specified timestamps of erroneous readings via `Django` (powered by `mysqlclient`)
@@ -261,7 +261,7 @@ This is all glued together by a magic `Python` class called `StationRaw`.  It hi
 
 Now for the "visible" parts -
 
-![5-useful-files-to-user-directly.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/5-useful-files-to-user-directly.svg)
+![5-useful-files-to-user-directly.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/5-useful-files-to-user-directly.svg)
 
 Data was accessed from either the web application (built using the `Django` web framework), or from a `Jupyter Notebook` server - a web-based interactive computing platform.
 
@@ -294,7 +294,7 @@ If any step in the data pipeline broke or went down (for whatever reason) then d
 
 ## How files **are now fetched** from remote loggers
 
-![3-sensors-to-loggernet-server.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
+![3-sensors-to-loggernet-server.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
 
 There wasn't much more to be done here other than some housekeeping[^RAA] since the loggers are configured on-site to use either `LoggerNet` or the `SmartGrid` connection.
 
@@ -437,13 +437,13 @@ The web application framework, `Django`, works well with `Postgres` so by switch
 So three databases ...
 
 
-![4-source-files-to-mssql-database.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/4-source-files-to-mssql-database.svg)
+![4-source-files-to-mssql-database.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/4-source-files-to-mssql-database.svg)
 
 
 ... became, well, two databases ...
 
 
-![6-source-files-to-timescale-database.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/6-source-files-to-timescale-database.svg)
+![6-source-files-to-timescale-database.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/6-source-files-to-timescale-database.svg)
 
 
 Now this change didn't come for free,  I had to ...
@@ -468,7 +468,7 @@ Having said all that,  I figured it was worth the cost for the simplicity it ena
 ## How sensor readings **are now cleaned**
 
 
-![7-timescale-database-to-useful-files.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/7-timescale-database-to-useful-files.svg)
+![7-timescale-database-to-useful-files.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/7-timescale-database-to-useful-files.svg)
 
 
 Once all readings for all sensors were stored in a single table, I could link each sensor reading to its corresponding metadata, re-calibrate and filter out erroneous readings in only a few lines of `SQL`, the database language.
@@ -507,7 +507,7 @@ What if the database runs out of connections?[^TWW]
 
 Now finally back to the "visible" parts -
 
-![8-useful-files-to-user-via-task-queue.svg](/assets/images/2023-12-04-struggling-to-sync-sensors-and-databases/8-useful-files-to-user-via-task-queue.svg)
+![8-useful-files-to-user-via-task-queue.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/8-useful-files-to-user-via-task-queue.svg)
 
 Somewhat sadly for the backend engineer, the bulk of this work is mostly "invisible" other than -
 
