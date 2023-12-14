@@ -905,6 +905,12 @@ div.highlighter-rouge {
   display: block;
 }
 
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) {
   .lg\:hidden {
     display: none;
