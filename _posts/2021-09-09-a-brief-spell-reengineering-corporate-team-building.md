@@ -1,7 +1,9 @@
 ---
 title: "A Brief Spell Re-engineering Corporate Team Building"
+layout: "post"
 description: |
-  Some thoughts on an unusual 2018/19 university engineering project
+  Some thoughts on an unusual university engineering project (2018/19)
+show_description: false
 image: /assets/images/orangeworks.png
 ---
 

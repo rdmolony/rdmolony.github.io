@@ -1,6 +1,5 @@
 ---
 layout: default
-image: /assets/images/headshot.png
 ---
 
 {% include bio.html %}
@@ -13,7 +12,7 @@ image: /assets/images/headshot.png
   <h2>Posts</h2>
   <ul class="list-none pl-0 mb-8">
     {%- for post in paginator.posts -%}
-    <li class="info-box m-2 p-2 group/item">
+    <li class="info-box m-2 p-2">
       {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
       <span class="text-xs">{{ post.date | date: date_format }}</span>
       <h3>
@@ -21,11 +20,13 @@ image: /assets/images/headshot.png
           {{ post.title | escape }}
         </a>
       </h3>
-      <div>
-        <p class="md:hidden group-hover/item:block">
-          {{ post.description | escape }}
-        </p>
-      </div>
+      {% if post.show_description %}
+        <div>
+          <p>
+            {{ post.description | escape }}
+          </p>
+        </div>
+      {% endif %}
     </li>
     {%- endfor -%}
   </ul>
