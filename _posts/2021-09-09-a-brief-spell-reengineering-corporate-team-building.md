@@ -1,6 +1,8 @@
 ---
 title: "A Brief Spell Re-engineering Corporate Team Building"
-layout: post
+description: |
+  Some reflections on an unusual 2018/19 university engineering project
+image: /assets/images/orangeworks.png
 ---
 
 Over 2018/19 my 8 person Trinity / University of Sao Paolo engineering team was challenged by an Irish company called [Orangeworks](https://www.orangeworks.ie/) with an unusual request -

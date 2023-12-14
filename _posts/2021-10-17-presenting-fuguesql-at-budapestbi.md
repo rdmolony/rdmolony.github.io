@@ -1,6 +1,7 @@
 ---
 title: "Presenting FugueSQL at BudapestBI"
-layout: post
+description: |
+  Some reflections on presenting a FugueSQL tutorial at a virtual conference
 ---
 
 In 2021, in collaboration with Kevin Kho, I presented a brief introduction to `FugueSQL`,  a language that allows heavy SQL users to work on Python-based DataFrames,  at the [2021 `BudapestBI` conference](https://budapestbi.hu/2021/hu/eloadok/kevin-kho/)
@@ -10,6 +11,8 @@ In 2021, in collaboration with Kevin Kho, I presented a brief introduction to `F
 
 At the time I was helping the project to improve its tutorials & documentation, so maintainers Kevin & Han Wang gave me the opportunity to pitch in on an upcoming presentation.  Kevin & Han were a joy to work with during that brief stint.  
 
-At the time I felt that `Fugue` was freeing up a lot of complexity in the `Python` data space by providing a unified interface to computing libraries/frameworks & wanted to spread the word.  Just write SQL or `Python` & `Fugue` handles running it on `Spark/Dask/DuckDB` etc.  It was really very liberating.
+At the time I felt that `Fugue` was freeing up a lot of complexity in the `Python` data space by providing a unified interface to computing libraries/frameworks & wanted to spread the word.  Just write `SQL` or `Python` & `Fugue` handles running it on `Spark/Dask/DuckDB` etc.  It was really very liberating.
+
+I felt a little bit of an imposter presenting a `FugueSQL` tutorial having not really used `FugueSQL` myself in any great depth!
 
 I drifted from the project as my focus shifted more towards web development.

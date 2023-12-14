@@ -19,6 +19,20 @@
 # in the templates via {{ site.myvariable }}.
 
 title: rowanmolony.com
+tagline: Blog
+description: |
+  Hi there,
+  I've spent the last four years working in software
+  - full-stack web development, analytics & data pipelines -
+  if any of that sounds interesting, you might find the posts here useful
+url: https://www.rowanmolony.com
+author: Rowan Molony
+social:
+  links:
+    - https://github.com/rdmolony
+    - https://www.linkedin.com/in/rowan-molony-113bbb155
+google_site_verification: A_2d0sbemvD2kO6wMnmReN5Vnt5nBVOv6JZfsJGDoag
+
 email: rowanmolony@gmail.com
 baseurl: "" # the subpath of your site, e.g. /blog
 github_username:  rdmolony
@@ -40,6 +54,15 @@ permalink: /blog/:year-:month-:day-:title.html
 
 include:
   - _pages
+
+defaults:
+  - 
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      image: /assets/images/headshot.png
+      layout: "post"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
