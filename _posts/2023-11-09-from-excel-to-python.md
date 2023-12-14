@@ -9,7 +9,7 @@ redirect_from:
   - /blog/2022-01-13-from-excel-to-visualisation-via-ploomber
   - /blog/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python
 description: |
-  Some reflections on learning & developing Python to "reproducibly" estimate regional building energy demands at Codema as part of the Dublin Region Energy Masterplan project
+  Some thoughts on learning & developing Python to "reproducibly" estimate regional building energy demands at Codema as part of the Dublin Region Energy Masterplan project
 ---
 
 {% capture tldr %}
