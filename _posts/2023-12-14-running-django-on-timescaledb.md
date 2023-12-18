@@ -103,13 +103,14 @@ INSTALLED_APPS = [
 I can now adapt `sensor/models.py`[^DJANGO_TABLE_NAME] ...
 
 ```python
-# models.py
+# sensor/models.py
 
 from django.db import models
 
 class Reading(models.Model):
-    sensor_name = models.TextField()
-    reading = models.FloatField()
+    timestamp = models.DateTimeField(blank=False, null=False)
+    sensor_name = models.TextField(blank=False, null=False)
+    reading = models.FloatField(blank=False, null=False)
 ```
 
 ... create its database migration[^MIGRATION] ...
@@ -137,12 +138,68 @@ If I connect to the database[^DBEAVER] I can see that this has been created with
 
 ### Create a database hypertable
 
-Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable`, since it wasn't designed to, so we need to do so ourselves.
+Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.
 
 Let's undo our migration & try again ...
 
 ```sh
 python manage.py migrate sensor zero
+rm sensor/migrations/0001_initial.py
+```
+
+This time let's create an empty initial migration ...
+
+```sh
+python manage.py makemigrations sensor --empty
+```
+
+... and manually edit it ourselves ...
+
+```python
+# sensor/migrations/0001_initial.py
+
+from django.db import migrations
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            """
+            CREATE TABLE sensor_reading (
+                timestamp TIMESTAMP NOT NULL,
+                sensor_name TEXT NOT NULL,
+                reading FLOAT,
+                PRIMARY KEY (timestamp, sensor_name)
+            );
+            SELECT create_hypertable('sensor_reading', 'timestamp');
+            """,
+            reverse_sql="""
+                DROP TABLE sensor_reading;
+            """
+        ),
+    ]
+```
+
+> Note that instead of an auto-generated `id` column as `PRIMARY KEY` we have created a ["composite" `PRIMARY KEY`]() of `timestamp, sensor_name`.  `TimescaleDB` requires that the `timestamp` column be a part of the primary key.  We don't necessarily need a primary key unless we really care about blocking saving of duplicate `timestamp, sensor_name`.
+
+Since we are managing this table ourselves, we also have to adapt `sensor/models.py` so that `Django` ignores it, and doesn't attempt to create an `id` column ...
+
+```python
+# sensor/models.py
+
+from django.db import models
+
+class Reading(models.Model):
+    timestamp = models.DateTimeField(blank=False, null=False)
+    sensor_name = models.TextField(blank=False, null=False)
+    reading = models.FloatField(blank=False, null=False)
+    
+    class Meta:
+        managed = False
 ```
 
 
