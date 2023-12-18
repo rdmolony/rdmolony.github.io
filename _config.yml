@@ -62,6 +62,8 @@ defaults:
     values:
       image: /assets/images/headshot.png
       show_description: true
+      description: |
+        Some Reflections on Web Development & Data Pipelines
 
 # Exclude from processing.
 # The following items will not be processed, by default.
