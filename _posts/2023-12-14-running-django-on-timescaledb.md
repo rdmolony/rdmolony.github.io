@@ -114,11 +114,26 @@ class File(models.Model):
 
 > `Django` tracks where files are stored via `FileField` - files are stored as files rather than within the database
 
-Now that we have somewhere to store files readings,  we need to handle web browser file uploads.
+
+... create its database migration[^MIGRATION] ...
+
+```sh
+python manage.py makemigrations sensor
+```
+
+[^MIGRATION]: A database migration is a set of instructions which specify updates to a database.  Since the database only understands `SQL` changes to `models.py` must be translated to `SQL` and rolled out via migrations in order to persist them
+
+... and roll it out ...
+
+```sh
+python manage.py migrate
+```
+
+Now that we have somewhere to store files of readings,  we need to handle web browser file uploads.
 
 This part is "standard" so it's covered by the [`Django` documentation](https://docs.djangoproject.com/en/5.0/topics/http/file-uploads/).
 
-In a similar manner, I can add a "form" to `sensor/forms.py` to generate a `<form>` element which I can send to the browser & validate ...
+In a similar manner, I can create ...
 
 ```python
 # sensor/forms.py
@@ -224,6 +239,15 @@ urlpatterns = [
 ]
 ```
 
+What about file uploads via an Application Programming Interface or API?
+
+> If you don't need this please skip to the next section
+
+It's a bit messy implementing this directly in `Django` since it's designed to render web pages rather than arbitrary text files so I'd recommend leveraging the `django-rest-framework` library.
+
+
+
+
 
 
 ### Store readings
@@ -243,21 +267,8 @@ class Reading(models.Model):
     reading = models.FloatField(blank=False, null=False)
 ```
 
-... create its database migration[^MIGRATION] ...
 
-```sh
-python manage.py makemigrations sensor
-```
-
-[^MIGRATION]: A database migration is a set of instructions which specify updates to a database.  Since the database only understands `SQL` changes to `models.py` must be translated to `SQL` and rolled out via migrations in order to persist them
-
-... and roll it out ...
-
-```sh
-python manage.py migrate
-```
-
-... to create table `sensor_reading`[^DJANGO_TABLE_NAME] in the database.
+... & thus (again) create its migration & roll it out to create table `sensor_reading`[^DJANGO_TABLE_NAME] in the database.
 
 [^DJANGO_TABLE_NAME]: `Django` automatically infers `sensor_` from the name of the app
 
