@@ -78,7 +78,7 @@ So how did it work?  And what did I do differently?
 
 
 
-# Getting started
+## Getting started
 
 It took me 2-3 months before I was "comfortable" to make a code change -
 
@@ -149,10 +149,10 @@ So when I was finally confident that I could rebuild the data pipeline more clea
 
 
 
-# The "old" way -
+## The "old" way -
 
 
-## How files **were fetched** from remote loggers
+### How files **were fetched** from remote loggers
 
 
 ![3-sensors-to-loggernet-server.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
@@ -180,7 +180,7 @@ These jobs need to be run periodically.  So a `batchfile` specifying the `Python
 
 
 
-## How files **were imported** to a database
+### How files **were imported** to a database
 
 
 ![4-source-files-to-mssql-database.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/4-source-files-to-mssql-database.svg)
@@ -232,7 +232,7 @@ Finally, the importer also handled files uploaded directly to the file server.  
 
 
 
-## How sensor readings **were cleaned**
+### How sensor readings **were cleaned**
 
 Before readings can be used for analysis they need to be processed[^XAR] and cleaned[^POO] every time new data is added to a source.  Oftentimes a particular source might be associated with millions of readings[^YAT], so how was this scaled?
 
@@ -260,7 +260,7 @@ This is all glued together by a magic `Python` class called `StationRaw`.  It hi
 
 
 
-## How sensor readings **were accessed**
+### How sensor readings **were accessed**
 
 
 Now for the "visible" parts -
@@ -293,10 +293,10 @@ If any step in the data pipeline broke or went down (for whatever reason) then d
 
 
 
-# The "new" way -
+## The "new" way -
 
 
-## How files **are now fetched** from remote loggers
+### How files **are now fetched** from remote loggers
 
 ![3-sensors-to-loggernet-server.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/3-sensors-to-loggernet-server.svg)
 
@@ -309,7 +309,7 @@ There wasn't much more to be done here other than some housekeeping[^RAA] since 
 
 
 
-## How files **are now imported** to a database
+### How files **are now imported** to a database
 
 Now for some heftier changes.
 
@@ -469,7 +469,7 @@ Having said all that,  I figured it was worth the cost for the simplicity it ena
 
 
 
-## How sensor readings **are now cleaned**
+### How sensor readings **are now cleaned**
 
 
 ![7-timescale-database-to-useful-files.svg](/assets/images/blog/2023-12-04-struggling-to-sync-sensors-and-databases/7-timescale-database-to-useful-files.svg)
@@ -506,7 +506,7 @@ What if the database runs out of connections?[^TWW]
 
 
 
-## How sensor readings **are now accessed**
+### How sensor readings **are now accessed**
 
 
 Now finally back to the "visible" parts -
@@ -531,7 +531,7 @@ The `Jupyter Notebook` server asks the web application for data (via an "Applica
 
 
 
-# Closing Remarks
+## Closing Remarks
 
 After all of that, I still had to manage complexity and so I still had failure modes[^IOP].
 
@@ -559,4 +559,4 @@ Only time will tell!
 
 
 
-# Footnotes
+## Footnotes

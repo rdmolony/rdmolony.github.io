@@ -55,7 +55,7 @@ Why?
 ---
 
 
-# Tools?
+## Tools?
 
 The prior model had been implemented in `Excel`.  
 
@@ -105,7 +105,7 @@ Does this power justify the additional complexity?
 ---
 
 
-# Downloading data?
+## Downloading data?
 
 We were working with several datasets -
 
@@ -147,7 +147,7 @@ A bit simpler.
 ---
 
 
-# Wrangling data?
+## Wrangling data?
 
 > By "wrangling" I mean loading & combining datasets
 
@@ -174,7 +174,7 @@ This worked fine so long as the combined datasets (just about) fit into memory o
 ---
 
 
-# Visualising data?
+## Visualising data?
 
 Who is the target audience & how will they interact with the data?  Will the visualisations live in `pdfs`, a desktop or web application, or `Jupyter Notebooks`?
 
@@ -197,7 +197,7 @@ I also tried to create a desktop application to enable using a laptop's resource
 ---
 
 
-# Gluing Python functions together?
+## Gluing Python functions together?
 
 To make the whole process reproducible we have to automate downloading, wrangling & visualisation of the datasets.  
 
@@ -220,7 +220,7 @@ I first found `prefect`.  I really enjoyed the error messages it provided on fai
 ---
 
 
-# Tracking changes?
+## Tracking changes?
 
 Now that I was writing "professional" code, I had to use "professional" tools for saving & versioning it.  With the power of `git` I could save a message alongside source code changes to make it easier to roll back to prior versions - provided that the messages were useful!  Comparatively, in something like `Microsoft Word` or `Google Docs`  I can only rely on timestamps like "March 14, 2022, 7:26 PM".
 
@@ -242,7 +242,7 @@ Having said that, it did eventually grow on me after I developed a decent mental
 ---
 
 
-# Sharing a developer environment?
+## Sharing a developer environment?
 
 I couldn't make my mind up on how to share my `Python` environment, since I found `Python` packaging really hard.
 
@@ -268,7 +268,7 @@ I ended up using both `conda` & `Docker`.  Both could be used for sharing a loca
 ---
 
 
-# Closing Remarks
+## Closing Remarks
 
 If I had known how much I was biting off when I initially chose `Python`, I'm not sure I would have made the same decision again.  I would certainly have dedicated more time finding out what my requirements were, how they could be met with existing tooling & (if possible) talking to others who have solved similar challenges.
 
@@ -352,4 +352,4 @@ And if I do need it,  `Wolfram Notebooks` [already incorporates `ChatGPT` direct
 ---
 
 
-# Footnotes
+## Footnotes
