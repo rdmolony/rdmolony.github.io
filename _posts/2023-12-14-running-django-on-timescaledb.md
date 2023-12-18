@@ -26,9 +26,8 @@ If you want to follow along locally, you can setup a developer environment via [
 
 - [Getting data in](#getting-data-in)
   - [Create an app](#create-an-app)
-  - [Create a database table](#create-a-database-table)
-  - [Create a database hypertable](#create-a-database-hypertable)
   - [Handle file uploads](#handle-file-uploads)
+  - [Store readings](#store-readings)
   - [Handle importing readings from files](#handle-importing-readings-from-files)
 - [Getting data out](#getting-data-out)
 
@@ -98,14 +97,145 @@ INSTALLED_APPS = [
 ```
 
 
-### Create a database table
+### Handle file uploads
 
-I can now adapt `sensor/models.py`[^DJANGO_TABLE_NAME] ...
+Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files ...
 
 ```python
 # sensor/models.py
 
 from django.db import models
+
+
+class File(models.Model):
+    file = models.FileField(upload_to="readings/", blank=False, null=False)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+```
+
+> `Django` tracks where files are stored via `FileField` - files are stored as files rather than within the database
+
+Now that we have somewhere to store files readings,  we need to handle web browser file uploads.
+
+This part is "standard" so it's covered by the [`Django` documentation](https://docs.djangoproject.com/en/5.0/topics/http/file-uploads/).
+
+In a similar manner, I can add a "form" to `sensor/forms.py` to generate a `<form>` element which I can send to the browser & validate ...
+
+```python
+# sensor/forms.py
+
+from django.forms import ModelForm
+
+from .models import File
+
+
+class FileForm(ModelForm):
+    class Meta:
+        model = File
+        fields = "__all__"
+```
+
+{% raw %}
+```html
+<!--- sensor/templates/upload.html -->
+
+<form>
+  {% csrf_token %}
+  {{ form }}
+  <input type="submit" value="Save"></input>
+</form>
+```
+{% endraw %}
+
+```python
+# sensor/views.py
+
+from django.shortcuts import render
+from django.shortcuts import redirect
+from django.http import HttpResponse
+
+from .forms import FileForm
+
+
+def upload_file(request):
+    if request.method == "POST":
+        form = FileForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect("sensor:report-file-upload-success")
+        else:
+            return redirect("sensor:report-file-upload-failure")
+    else:
+        form = FileForm()
+    return render(request, "upload_file.html", {"form": form})
+
+
+def report_file_upload_success(request):
+    return HttpResponse("File upload was successful")
+
+
+def report_file_upload_failure(request):
+    return HttpResponse("File upload failed")
+```
+
+```python
+# core/urls.py
+
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import include
+from django.urls import path
+
+
+urlpatterns = [
+    path('', lambda request: redirect('sensor')),
+
+    path('admin/', admin.site.urls),
+    path('sensor/', include('sensor.urls')),
+]
+```
+
+```python
+# sensor/urls.py
+
+from django.shortcuts import redirect
+from django.urls import include
+from django.urls import path
+
+from . import views
+
+
+app_name = "sensor"
+
+
+urlpatterns = [
+    path('', lambda request: redirect('sensor:upload-file')),
+
+    path('upload-file/', views.upload_file, name="upload-file"),
+    path(
+        'report-file-upload-success/',
+        views.report_file_upload_success,
+        name="report-file-upload-success"
+    ),
+    path(
+        'report-file-upload-failure/',
+        views.report_file_upload_failure,
+        name="report-file-upload-failure"
+    ),
+]
+```
+
+
+
+### Store readings
+
+Let's add a `Reading` model to store readings by adapting `sensor/models.py`[^DJANGO_TABLE_NAME] ...
+
+```python
+# sensor/models.py
+
+from django.db import models
+
+# ....
 
 class Reading(models.Model):
     timestamp = models.DateTimeField(blank=False, null=False)
@@ -134,9 +264,6 @@ python manage.py migrate
 If I connect to the database[^DBEAVER] I can see that this has been created with three columns: `id`, `sensor_name` & `reading`.   Where did `id` come from?  By default,  `Django` creates tables with an automatically incrementing `id` column (a `PRIMARY KEY`) which uniquely identifies each row.  Every time a new row is added to this table,  `id` increments by one. 
 
 [^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  I could also just use `psql` which ships with `Postgres`
-
-
-### Create a database hypertable
 
 Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.
 
@@ -202,9 +329,13 @@ class Reading(models.Model):
         managed = False
 ```
 
+Now we can roll out migrations ...
 
-### Handle file uploads
+```sh
+python manage.py migrate
+```
 
+... & connect to the database[^DBEAVER] to see the newly created `Hypertable`.
 
 
 ### Handle importing readings from files

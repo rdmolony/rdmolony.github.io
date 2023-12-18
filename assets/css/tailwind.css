@@ -669,6 +669,7 @@ div.highlighter-rouge, div.highlight, pre.highlight {
 }
 
 div.highlighter-rouge {
+  margin: 0.5rem;
   margin-left: 0.75rem;
   font-size: 0.75rem;
   line-height: 1rem;
