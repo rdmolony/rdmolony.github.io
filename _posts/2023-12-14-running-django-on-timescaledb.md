@@ -137,12 +137,12 @@ If I connect to the database[^DBEAVER] I can see that this has been created with
 
 ### Create a database hypertable
 
-Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable`, so we need to do so ourselves.
+Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable`, since it wasn't designed to, so we need to do so ourselves.
 
 Let's undo our migration & try again ...
 
 ```sh
-
+python manage.py migrate sensor zero
 ```
 
 
