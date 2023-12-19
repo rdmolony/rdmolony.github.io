@@ -820,9 +820,9 @@ div.highlighter-rouge {
   margin-right: 0px;
 }
 
-.my-2 {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+.mx-0\.5 {
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
 }
 
 .mx-1 {
@@ -830,14 +830,14 @@ div.highlighter-rouge {
   margin-right: 0.25rem;
 }
 
-.mx-0\.5 {
-  margin-left: 0.125rem;
-  margin-right: 0.125rem;
-}
-
 .mx-2 {
   margin-left: 0.5rem;
   margin-right: 0.5rem;
+}
+
+.my-2 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .mb-20 {
@@ -848,16 +848,8 @@ div.highlighter-rouge {
   margin-bottom: 2rem;
 }
 
-.ml-1 {
-  margin-left: 0.25rem;
-}
-
 .mt-4 {
   margin-top: 1rem;
-}
-
-.mr-1 {
-  margin-right: 0.25rem;
 }
 
 .inline-block {
