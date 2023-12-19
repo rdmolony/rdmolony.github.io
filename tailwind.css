@@ -14,7 +14,7 @@
     @apply h-px border-0 m-8 bg-slate-400 shadow-lg
   }
   blockquote {
-    @apply bg-blue-100 bg-blue-500 p-4 mt-4 mb-8 rounded-xl shadow-lg
+    @apply bg-blue-100 dark:bg-blue-500 p-4 mt-4 mb-8 rounded-xl shadow-lg
   }
   table {
     @apply table-auto m-4 border-collapse border border-slate-400 text-center w-full
@@ -26,7 +26,7 @@
     @apply p-3 border border-slate-300
   }
   button {
-    @apply bg-slate-100 bg-slate-700 shadow-lg rounded-lg p-2 hover:bg-blue-300
+    @apply bg-slate-100 dark:bg-slate-700 shadow-lg rounded-lg p-2 hover:bg-blue-300
   }
   .headshot-box {
     @apply bg-slate-100 dark:bg-slate-700 hover:bg-blue-300 w-60 mx-auto mb-1 aspect-auto rounded-xl shadow-lg
