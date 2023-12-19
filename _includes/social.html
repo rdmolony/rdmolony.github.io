@@ -1,26 +1,26 @@
 
 <div class="my-2 text-center">
   <a href="{{ site.url }}">
-    <img class="inline-block h-6 mx-0 p-0" src="/assets/images/icons/home.svg" alt="home.svg">
+    <img class="dark:invert inline-block h-6 mx-1 p-0" src="/assets/images/icons/home.svg" alt="home.svg">
   </a>
   {%- if site.github_username -%}
     <a href="https://github.com/{{ site.github_username| cgi_escape | escape }}">
-      <img class="inline-block h-6 mx-0 p-0" src="/assets/images/icons/github.svg" alt="github.svg">
+      <img class="dark:invert inline-block h-6 mx-0 p-0" src="/assets/images/icons/github.svg" alt="github.svg">
     </a>
   {%- endif -%}
   {%- if site.linkedin_username -%}
     <a href="https://www.linkedin.com/in/{{ site.linkedin_username| cgi_escape | escape }}">
-      <img class="inline-block w-8 mx-0 p-0" src="/assets/images/icons/linkedin.svg" alt="linkedin.svg">
+      <img class="dark:invert inline-block w-8 mx-0.5 p-0" src="/assets/images/icons/linkedin.svg" alt="linkedin.svg">
     </a>
   {%- endif -%}
   {%- if site.email -%}
     <a class="u-email" href="mailto:{{ site.email }}">
-      <img class="inline-block h-6 mx-0 p-0" src="/assets/images/icons/email.svg" alt="email.svg">
+      <img class="dark:invert inline-block h-6 mx-0 p-0" src="/assets/images/icons/email.svg" alt="email.svg">
     </a>
   {%- endif -%}
   {%- if site.rss -%}
     <a href="{{ 'feed.xml' | relative_url }}">
-      <img class="inline-block h-6 ml-1 mx-0 p-0" src="/assets/images/icons/rss.svg" alt="rss.svg">
+      <img class="dark:invert inline-block h-6 mx-2 p-0" src="/assets/images/icons/rss.svg" alt="rss.svg">
     </a>
   {%- endif -%}
   </div>
