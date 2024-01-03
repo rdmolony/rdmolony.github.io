@@ -26,9 +26,11 @@ If you want to follow along locally, you can setup a developer environment via [
 
 - [Getting data in](#getting-data-in)
   - [Create an app](#create-an-app)
+  - [Create a Data Model for Files](#create-a-data-model-for-files)
   - [Handle file uploads via Browser](#handle-file-uploads-via-browser)
   - [Handle file uploads via API](#handle-file-uploads-via-api)
-  - [Store readings](#store-readings)
+  - [Create a Data Model for Readings](#create-a-data-model-for-readings)
+  - [Import Readings](#import-readings)
   - [Handle importing readings from files](#handle-importing-readings-from-files)
 - [Getting data out](#getting-data-out)
 
@@ -57,7 +59,6 @@ We need to do a bit of work to adapt this workflow to handle file contents.
 
 
 ### Create an app
-
 
 Let's first run ...
 
@@ -98,7 +99,7 @@ INSTALLED_APPS = [
 ```
 
 
-### Handle file uploads via Browser
+### Create a Data Model for Files
 
 Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files ...
 
@@ -129,6 +130,9 @@ python manage.py makemigrations sensor
 ```sh
 python manage.py migrate
 ```
+
+
+### Handle file uploads via Browser
 
 Now that we have somewhere to store files of readings,  we need to handle file uploads.
 
@@ -246,7 +250,6 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ['__all__']
 ```
 
-
 ```python
 # sensor/api_urls.py
 
@@ -270,9 +273,7 @@ urlpatterns = [
 ```
 
 
-
-
-### Store readings
+### Create a Data Model for Readings
 
 Let's add a `Reading` model to store readings by adapting `sensor/models.py`[^DJANGO_TABLE_NAME] ...
 
@@ -289,10 +290,10 @@ class Reading(models.Model):
     reading = models.FloatField(blank=False, null=False)
 ```
 
-
 ... & thus (again) create its migration & roll it out to create table `sensor_reading`[^DJANGO_TABLE_NAME] in the database.
 
-[^DJANGO_TABLE_NAME]: `Django` automatically infers `sensor_` from the name of the app
+[^DJANGO_TABLE_NAME]: `Django` automatically infers `sensor_` in the table name from the name of the app
+
 
 If I connect to the database[^DBEAVER] I can see that this has been created with three columns: `id`, `sensor_name` & `reading`.   Where did `id` come from?  By default,  `Django` creates tables with an automatically incrementing `id` column (a `PRIMARY KEY`) which uniquely identifies each row.  Every time a new row is added to this table,  `id` increments by one. 
 
@@ -300,23 +301,16 @@ If I connect to the database[^DBEAVER] I can see that this has been created with
 
 Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.
 
-Let's undo our migration & try again ...
+Let's create an empty migration ...
 
 ```sh
-python manage.py migrate sensor zero
-rm sensor/migrations/0001_initial.py
-```
-
-This time let's create an empty initial migration ...
-
-```sh
-python manage.py makemigrations sensor --empty
+python manage.py makemigrations sensor --empty --name "sensor_reading"
 ```
 
 ... and manually edit it ourselves ...
 
 ```python
-# sensor/migrations/0001_initial.py
+# sensor/migrations/0002_sensor_reading.py
 
 from django.db import migrations
 
@@ -332,8 +326,7 @@ class Migration(migrations.Migration):
             CREATE TABLE sensor_reading (
                 timestamp TIMESTAMP NOT NULL,
                 sensor_name TEXT NOT NULL,
-                reading FLOAT,
-                PRIMARY KEY (timestamp, sensor_name)
+                reading FLOAT
             );
             SELECT create_hypertable('sensor_reading', 'timestamp');
             """,
@@ -343,8 +336,6 @@ class Migration(migrations.Migration):
         ),
     ]
 ```
-
-> Note that instead of an auto-generated `id` column as `PRIMARY KEY` we have created a ["composite" `PRIMARY KEY`]() of `timestamp, sensor_name`.  `TimescaleDB` requires that the `timestamp` column be a part of the primary key.  We don't necessarily need a primary key unless we really care about blocking saving of duplicate `timestamp, sensor_name`.
 
 Since we are managing this table ourselves, we also have to adapt `sensor/models.py` so that `Django` ignores it, and doesn't attempt to create an `id` column ...
 
@@ -362,6 +353,9 @@ class Reading(models.Model):
         managed = False
 ```
 
+> Note that this table does not include an auto-generated `id` column as `PRIMARY KEY` like the previous data model.  We don't necessarily need a primary key unless we really care about blocking the saving of duplicate `timestamp, sensor_name`.
+
+
 Now we can roll out migrations ...
 
 ```sh
@@ -369,6 +363,12 @@ python manage.py migrate
 ```
 
 ... & connect to the database[^DBEAVER] to see the newly created `Hypertable`.
+
+
+### Import Readings
+
+In my case each file source had its own conventions (for datetime column names, datetime string formats & encodings), so I had to standardise each file to a data model before import.
+
 
 
 ### Handle importing readings from files
