@@ -26,7 +26,8 @@ If you want to follow along locally, you can setup a developer environment via [
 
 - [Getting data in](#getting-data-in)
   - [Create an app](#create-an-app)
-  - [Handle file uploads](#handle-file-uploads)
+  - [Handle file uploads via Browser](#handle-file-uploads-via-browser)
+  - [Handle file uploads via API](#handle-file-uploads-via-api)
   - [Store readings](#store-readings)
   - [Handle importing readings from files](#handle-importing-readings-from-files)
 - [Getting data out](#getting-data-out)
@@ -97,7 +98,7 @@ INSTALLED_APPS = [
 ```
 
 
-### Handle file uploads
+### Handle file uploads via Browser
 
 Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files ...
 
@@ -129,11 +130,32 @@ python manage.py makemigrations sensor
 python manage.py migrate
 ```
 
-Now that we have somewhere to store files of readings,  we need to handle web browser file uploads.
+Now that we have somewhere to store files of readings,  we need to handle file uploads.
 
-This part is "standard" so it's covered by the [`Django` documentation](https://docs.djangoproject.com/en/5.0/topics/http/file-uploads/).
+This part is "standard" so it's covered by the [`Django` documentation](https://docs.djangoproject.com/en/5.0/topics/http/file-uploads/).  In a similar manner, I can create a "view" to render `HTML` to accept browser file uploads ...
 
-In a similar manner, I can create ...
+```python
+# sensor/views.py
+
+from django.shortcuts import render
+from django.shortcuts import redirect
+from django.http import HttpResponse
+
+from .forms import FileForm
+
+
+def upload_file(request):
+    if request.method == "POST":
+        form = FileForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("File upload was successful")
+        else:
+            return HttpResponse("File upload failed")
+    else:
+        form = FileForm()
+    return render(request, "upload_file.html", {"form": form})
+```
 
 ```python
 # sensor/forms.py
@@ -162,58 +184,9 @@ class FileForm(ModelForm):
 {% endraw %}
 
 ```python
-# sensor/views.py
-
-from django.shortcuts import render
-from django.shortcuts import redirect
-from django.http import HttpResponse
-
-from .forms import FileForm
-
-
-def upload_file(request):
-    if request.method == "POST":
-        form = FileForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect("sensor:report-file-upload-success")
-        else:
-            return redirect("sensor:report-file-upload-failure")
-    else:
-        form = FileForm()
-    return render(request, "upload_file.html", {"form": form})
-
-
-def report_file_upload_success(request):
-    return HttpResponse("File upload was successful")
-
-
-def report_file_upload_failure(request):
-    return HttpResponse("File upload failed")
-```
-
-```python
-# core/urls.py
-
-from django.contrib import admin
-from django.shortcuts import redirect
-from django.urls import include
-from django.urls import path
-
-
-urlpatterns = [
-    path('', lambda request: redirect('sensor')),
-
-    path('admin/', admin.site.urls),
-    path('sensor/', include('sensor.urls')),
-]
-```
-
-```python
 # sensor/urls.py
 
 from django.shortcuts import redirect
-from django.urls import include
 from django.urls import path
 
 from . import views
@@ -226,26 +199,75 @@ urlpatterns = [
     path('', lambda request: redirect('sensor:upload-file')),
 
     path('upload-file/', views.upload_file, name="upload-file"),
-    path(
-        'report-file-upload-success/',
-        views.report_file_upload_success,
-        name="report-file-upload-success"
-    ),
-    path(
-        'report-file-upload-failure/',
-        views.report_file_upload_failure,
-        name="report-file-upload-failure"
-    ),
 ]
 ```
 
-What about file uploads via an Application Programming Interface or API?
-
-> If you don't need this please skip to the next section
-
-It's a bit messy implementing this directly in `Django` since it's designed to render web pages rather than arbitrary text files so I'd recommend leveraging the `django-rest-framework` library.
+This requires someone clicking through this web application every time they want to add new data.  If data is synced automatically from remote sensors to a file system somewhere, then why not setup automatic file uploads?  For this we need an API.
 
 
+### Handle file uploads via API
+
+An API (or Application Programming Interface) lets our web application accept file uploads from another program.
+
+The `django-rest-framework` library does a lot of heavy lifting here so let's use it.
+
+> If you have never used `django-rest-framework` consider first completing the ["Official Django Rest Framework Tutorial"](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
+
+We can use a "viewset" to automatically create an endpoint (like `/api/sensor/file/`) that accepts file uploads ...
+
+```python
+# sensor/api/viewsets.py
+
+from rest_framework import viewsets
+
+from ..models import File
+from .serializers import FileSerializer
+
+
+class FileViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    queryset = File.objects.all()
+    serializer_class = FileSerializer
+```
+
+```python
+# sensor/api/serializers.py
+
+from rest_framework import serializers
+
+from ..models import File
+
+
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = ['__all__']
+```
+
+
+```python
+# sensor/api_urls.py
+
+from django.urls import include
+from django.urls import path
+from rest_framework.routers import DefaultRouter
+
+from .api import viewsets
+
+
+app_name = "sensor"
+
+
+router = DefaultRouter()
+router.register('file', viewsets.FileViewSet)
+
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
+```
 
 
 
