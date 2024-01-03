@@ -369,6 +369,16 @@ python manage.py migrate
 
 In my case each file source had its own conventions (for datetime column names, datetime string formats & encodings), so I had to standardise each file to a data model before import.
 
+What if each file contains a few gigabytes of readings?  Won't this take an age to process?
+
+If you can't guarantee that the sensor files are small enough that they can be processed quickly then you might need to offload file importing to a task queue.
+
+> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
+
+`Celery` is a mature `Python` task queue library that supports `Django` out of the box.  It supports `Redis` which acts as the intermediary between "waiters" & "chefs" using the above analogy (or message broker).
+
+
+
 
 
 ### Handle importing readings from files
