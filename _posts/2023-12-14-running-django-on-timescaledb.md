@@ -21,6 +21,8 @@ If you want to follow along locally, you can setup a developer environment via [
 
 > If you have any trouble getting setup,  feel free to ask a question at [django-timescaledb-example/discussions](https://github.com/rdmolony/django-timescaledb-example/discussions)
 
+> This tutorial assumes some familiarity with `Django` or a similar web framework.  If you have never used `Django` I highly recommend [the official Django tutorial"](https://docs.djangoproject.com/en/5.0/intro/tutorial01/)
+
 
 {% capture table_of_contents %}
 
@@ -50,8 +52,6 @@ The `Django` documentation covers [File Uploads](https://docs.djangoproject.com/
 - `Django` sends a web page to a browser containing one or more `<form>` elements
 - Once filled-in, these `<form>` elements are sent back to `Django`
 - `Django` processes these entries & saves them to the database using the `Django` ORM
-
-> If any of this sounds unfamiliar to you,  consider completing out the ["Official Django Tutorial"](https://docs.djangoproject.com/en/5.0/intro/tutorial01/) before continuing on here
 
 The key enabler here is the [ORM (or "Object Relational Mapper")](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping).  It maps a `Python` class to a database table so that this table's data is easily accessible from within `Python`.  Without an ORM one would have to use the `SQL` language to communicate with the database.
 
@@ -106,16 +106,12 @@ Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files
 ```python
 # sensor/models.py
 
-from django.db import models
-
-
 class File(models.Model):
     file = models.FileField(upload_to="readings/", blank=False, null=False)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    parsed = models.DateTimeField(blank=False, null=False)
+    parse_error = models.TextField(blank=True, null=True)
 ```
-
-> `Django` tracks where files are stored via `FileField` - files are stored as files rather than within the database
-
 
 ... create its database migration[^MIGRATION] ...
 
@@ -130,6 +126,8 @@ python manage.py makemigrations sensor
 ```sh
 python manage.py migrate
 ```
+
+> Any change to `sensor/models.py` requires a corresponding migration!
 
 
 ### Handle file uploads via Browser
@@ -179,32 +177,26 @@ class FileForm(ModelForm):
 ```html
 <!--- sensor/templates/upload.html -->
 
-<form>
-  {% csrf_token %}
-  {{ form }}
-  <input type="submit" value="Save"></input>
-</form>
+<div style="text-align: center">
+  <h1>Upload File</h1>
+  <form enctype="multipart/form-data" method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div style="margin-bottom: 10px">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+          <span class="question-mark" title="{{ field.help_text }}">&#63;</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <input type="submit" value="Save"></input>
+  </form>
+</div>
 ```
 {% endraw %}
 
-```python
-# sensor/urls.py
-
-from django.shortcuts import redirect
-from django.urls import path
-
-from . import views
-
-
-app_name = "sensor"
-
-
-urlpatterns = [
-    path('', lambda request: redirect('sensor:upload-file')),
-
-    path('upload-file/', views.upload_file, name="upload-file"),
-]
-```
+> Each change to `sensor/views.py` requires a corresponding route in `sensor/urls.py` (which I excluded here) so `Django` knows where to look when it receives a request for `/sensor/upload-file/`.  See the linked `GitHub` repository for the full details.
 
 This requires someone clicking through this web application every time they want to add new data.  If data is synced automatically from remote sensors to a file system somewhere, then why not setup automatic file uploads?  For this we need an API.
 
@@ -215,7 +207,7 @@ An API (or Application Programming Interface) lets our web application accept fi
 
 The `django-rest-framework` library does a lot of heavy lifting here so let's use it.
 
-> If you have never used `django-rest-framework` consider first completing the ["Official Django Rest Framework Tutorial"](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
+> If you have never used `django-rest-framework` consider first completing the [official Django Rest Framework tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
 
 We can use a "viewset" to automatically create an endpoint (like `/api/sensor/file/`) that accepts file uploads ...
 
@@ -250,27 +242,7 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ['__all__']
 ```
 
-```python
-# sensor/api_urls.py
-
-from django.urls import include
-from django.urls import path
-from rest_framework.routers import DefaultRouter
-
-from .api import viewsets
-
-
-app_name = "sensor"
-
-
-router = DefaultRouter()
-router.register('file', viewsets.FileViewSet)
-
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
-```
+> Similarly to `sensor/views.py` each change to `sensor/api/viewsets.py` requires a corresponding route in `sensor/api_urls.py`.  See the linked `GitHub` repository for the full details. 
 
 
 ### Create a Data Model for Readings
@@ -301,26 +273,38 @@ If I connect to the database[^DBEAVER] I can see that this has been created with
 
 Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.
 
-Let's create an empty migration ...
+Let's create a "base" migration ...
 
 ```sh
-python manage.py makemigrations sensor --empty --name "sensor_reading"
+python manage.py makemigrations sensor --name "sensor_reading"
 ```
 
-... and manually edit it ourselves ...
+... and manually edit it ourselves to create a `Hypertable` ...
 
 ```python
 # sensor/migrations/0002_sensor_reading.py
 
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('sensor', '0001_initial')
     ]
-
     operations = [
+        migrations.CreateModel(
+            name='Reading',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('timestamp', models.DateTimeField()),
+                ('sensor_name', models.TextField()),
+                ('reading', models.FloatField()),
+            ],
+            options={
+                'managed': False,
+            },
+        ),
         migrations.RunSQL(
             """
             CREATE TABLE sensor_reading (
@@ -375,7 +359,7 @@ If you can't guarantee that the sensor files are small enough that they can be p
 
 > A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
-`Celery` is a mature `Python` task queue library that supports `Django` out of the box.  It supports `Redis` which acts as the intermediary between "waiters" & "chefs" using the above analogy (or message broker).
+`Celery` is a mature `Python` task queue library & works well with `Django`.  It supports `Redis` which acts as the intermediary between "waiters" & "chefs" using the above analogy (or message broker).
 
 
 
