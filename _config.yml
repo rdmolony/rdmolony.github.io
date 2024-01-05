@@ -20,11 +20,6 @@
 
 title: rowanmolony.com
 tagline: Blog
-description: |
-  Hi there,
-  I've spent the last four years working in software
-  - full-stack web development, analytics & data pipelines -
-  if any of that sounds interesting, you might find the posts here useful
 url: https://www.rowanmolony.com
 author: Rowan Molony
 social:
@@ -63,7 +58,7 @@ defaults:
       image: /assets/images/headshot.png
       show_description: true
       description: |
-        Some Reflections on Web Development & Data Pipelines
+        Some Reflections on Software Engineering - Web Development & Data Pipelines
 
 # Exclude from processing.
 # The following items will not be processed, by default.
