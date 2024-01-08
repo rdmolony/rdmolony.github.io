@@ -31,10 +31,13 @@ If you want to follow along locally, you can setup a developer environment via [
   - [Create a home page](#create-a-home-page)
   - [Create a Data Model for Files](#create-a-data-model-for-files)
   - [Handle file uploads via Browser](#handle-file-uploads-via-browser)
+  - [Create an API home page](#create-an-api-home-page)
   - [Handle file uploads via API](#handle-file-uploads-via-api)
   - [Create a Data Model for Readings](#create-a-data-model-for-readings)
-  - [Import Readings](#import-readings)
   - [Handle importing readings from files](#handle-importing-readings-from-files)
+  - [Validate files](#validate-files)
+  - [Import files](#import-files)
+- [Scaling long running tasks via Celery](#scaling-long-running-tasks-via-celery)
 - [Getting data out](#getting-data-out)
 
 {% endcapture %}
@@ -156,7 +159,8 @@ urlpatterns = [
 ]
 ```
 
-Now [`http://localhost:8000`](http://localhost:8000) should display a single line of text "django-timescaledb-example".  We can build on this `index.html` to link to other pages.
+So now [`http://localhost:8000`](http://localhost:8000) should display `index.html`.  We can build on this `index.html` to link to other pages.
+
 
 ### Create a Data Model for Files
 
@@ -186,7 +190,7 @@ python manage.py makemigrations sensor
 python manage.py migrate
 ```
 
-> Any change to `sensor/models.py` requires a corresponding database migration
+> Any change to `sensor/models.py` requires a corresponding database migration!
 
 
 ### Handle file uploads via Browser
@@ -205,6 +209,9 @@ from django.http import HttpResponse
 from .forms import FileForm
 
 
+# ...
+
+
 def upload_file(request):
     if request.method == "POST":
         form = FileForm(request.POST, request.FILES)
@@ -216,6 +223,9 @@ def upload_file(request):
     else:
         form = FileForm()
     return render(request, "upload_file.html", {"form": form})
+
+
+# ...
 ```
 
 ```python
@@ -232,9 +242,9 @@ class FileForm(ModelForm):
         fields = "__all__"
 ```
 
-```html
 {% raw %}
-<!--- sensor/templates/upload.html -->
+```html
+<!--- sensor/templates/upload_file.html -->
 
 <div style="text-align: center">
   <h1>Upload File</h1>
@@ -252,8 +262,8 @@ class FileForm(ModelForm):
     <input type="submit" value="Save"></input>
   </form>
 </div>
-{% endraw %}
 ```
+{% endraw %}
 
 ```python
 # sensor/urls.py
@@ -267,22 +277,101 @@ app_name = "sensor"
 
 
 urlpatterns = [
+    path('', views.index, name="root"),
     path('upload-file/', views.upload_file, name="upload-file"),
 ]
 ```
 
 This requires someone clicking through this web application every time they want to add new data.  If data is synced automatically from remote sensors to a file system somewhere, then why not setup automatic file uploads?  For this we need an API.
 
-
-### Handle file uploads via API
-
 An API (or Application Programming Interface) lets our web application accept file uploads from another program.
 
 The `django-rest-framework` library does a lot of heavy lifting here so let's use it.
 
+> If you are not interested in APIs feel free to skip the API sections
+
 > If you have never used `django-rest-framework` consider first completing the [official tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
 
-We can use a "viewset" to automatically create an endpoint (like `/api/sensor/file/`) that accepts file uploads ...
+
+### Create an API home page
+
+As suggested by [`Two Scoops of Django 3.x`](https://www.feldroy.com/books/two-scoops-of-django-3-x) let's create `core/api_urls.py` to wire up our API ...
+
+```python
+# core/urls.py
+
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import include
+from django.urls import path
+
+
+urlpatterns = [
+    path('', lambda request: redirect('sensor:root')),
+
+    path('admin/', admin.site.urls),
+    path('api/', include('core.api_urls')),
+    path('sensor/', include('sensor.urls')),
+]
+```
+
+```python
+# core/api_urls.py
+
+from django.urls import include
+from django.urls import path
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+
+
+app_name = "api"
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'sensors': reverse('api:sensor:api-root', request=request, format=format),
+    })
+
+
+urlpatterns = [
+    path('', api_root, name="api-root"),
+    path('sensor/', include('sensor.api_urls'), name='sensor'),
+]
+```
+
+```python
+# core/api_urls.py
+
+from django.urls import include
+from django.urls import path
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
+
+from .api import viewsets
+
+
+app_name = "sensor"
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({})
+
+
+urlpatterns = [
+    path('', api_root, name="api-root"),
+]
+```
+
+So now we can add new views &/or viewsets to `sensor/api_urls.py` & they will be "connectable" via `/api/sensor/`
+
+
+### Handle file uploads via API
+
+We can use a "viewset" to create an endpoint like `/api/sensor/file/` to which another program can upload files ...
 
 ```python
 # sensor/api/viewsets.py
@@ -294,9 +383,6 @@ from .serializers import FileSerializer
 
 
 class FileViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    This viewset automatically provides `list` and `retrieve` actions.
-    """
     queryset = File.objects.all()
     serializer_class = FileSerializer
 ```
@@ -315,7 +401,6 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ['__all__']
 ```
 
-> Similarly to `sensor/views.py` each change to `sensor/api/viewsets.py` requires a corresponding route in `sensor/api_urls.py`.  See [`django-timescaledb-example``](https://github.com/rdmolony/django-timescaledb-example) for the full details. 
 
 
 ### Create a Data Model for Readings
@@ -327,7 +412,9 @@ Let's add a `Reading` model to store readings ...
 
 from django.db import models
 
+
 # ....
+
 
 class Reading(models.Model):
 
@@ -406,9 +493,436 @@ python manage.py migrate
 [^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  I could also just use `psql` which ships with `Postgres`
 
 
-### Import Readings
+### Handle importing readings from files
 
-In my case each file source had its own conventions (for datetime column names, datetime string formats & encodings), so I had to standardise each file to a data model before import.
+How do we convert files like ...
+
+```
+Lat=0  Lon=0  Hub-Height=160  Timezone=00.0  Terrain-Height=0.0
+Computed at 100 m resolution
+ 
+YYYYMMDD HHMM   M(m/s) D(deg) SD(m/s)  DSD(deg)  Gust3s(m/s)    T(C)    PRE(hPa)       RiNumber  VertM(m/s)
+20151222 0000  20.54   211.0    1.22       0.3        21.00     11.9      992.8            0.15    0.18
+20151222 0010  21.02   212.2    2.55       0.6        21.35     11.8      992.7            0.29   -0.09
+```
+
+... into ...
+
+```python
+[
+    {
+      'reading': '20.54',
+      'sensor_name': 'M(m/s)',
+      'timestamp': datetime.datetime(2015, 12, 22, 0, 0),
+    },
+    {
+      'reading': '211.0',
+      'sensor_name': 'D(deg)',
+      'timestamp': datetime.datetime(2015, 12, 22, 0, 0),
+    },
+    # ...
+)
+```
+
+... so we can store them in the `Reading` data model?
+
+In this file `YYYYMMDD` & `HHMM` clearly represent the timestamp and so `20151222 0000` corresponds to `datetime.datetime(2015, 12, 22, 0, 0)`, however, this may differ between sources.
+
+One way to generalise the importer is to upload a `FileType` specification alongside each file so we know how to standardise it.
+
+We can create a new model `FileType` & link it to `File` like ...
+
+```python
+# sensor/models.py
+
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+
+
+class FileType(models.Model):
+
+    name = models.TextField()
+    na_values = ArrayField(
+        base_field=models.CharField(max_length=10),
+        default=["NaN"],
+        help_text=textwrap.dedent(
+            r"""A list of strings to recognise as empty values.
+            
+            Default: ["NaN"]
+
+            Note: "" is also included by default
+
+            Example: ["NAN", "-9999", "-9999.0"]
+            """
+        ),
+    )
+    delimiter = models.CharField(
+        max_length=5,
+        help_text=textwrap.dedent(
+            r"""The character used to separate fields in the file.
+            
+            Default: ","
+            
+            Examples: "," or ";" or "\s+" for whitespace or "\t" for tabs
+            """
+        ),
+        default=",",
+    )
+    datetime_fieldnames = ArrayField(
+        base_field=models.CharField(max_length=50),
+        default=["Tmstamp"],
+        help_text=textwrap.dedent(
+            r"""A list of datetime field names.
+            
+            Examples:
+            
+            1) Data has a single datetime field named "Tmstamp" which has values like
+            '2021-06-29 00:00:00.000':  ["Tmstamp"]
+
+            2) Data has two datetime fields named "Date" and "Time" which have values
+            like '01.01.1999' and '00:00' respectively: ["Date","Time"]
+            """
+        ),
+    )
+    encoding = models.CharField(
+        max_length=25,
+        help_text=textwrap.dedent(
+            r"""The encoding of the file.
+
+            Default: "utf-8"
+
+            Examples: utf-8 or latin-1 or cp1252
+            """
+        ),
+        default="utf-8",
+    )
+    datetime_formats = ArrayField(
+        base_field=models.CharField(max_length=25),
+        help_text=textwrap.dedent(
+            r"""The datetime format of `datetime_columns`.
+
+            See https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
+            for format codes
+
+            Default: "%Y-%m-%d %H:%M:%S"
+
+            Examples: "%Y-%m-%d %H:%M:%S" for "2021-03-01 00:00:00"
+            """
+        ),
+        default=[r"%Y-%m-%d %H:%M:%S"],
+    )
+
+
+
+class File(models.Model):
+
+    # ...
+    type = models.ForeignKey(FileType, on_delete=models.RESTRICT)
+    # ...
+```
+
+`Django` forms are smart enough to automatically render the `upload-file` view with a `type` field since we specified `fields = "__all__"` in `sensor/forms.py`.
+
+`django-rest-framework` viewsets will also include it thanks to `fields = "__all__"` in `sensor/api/serializers.py`, however, its default behaviour for foreign keys is not ideal.  It expects to recieve a numeric `id` for field `type`, whereas it's more intuitive to specify the `name` field instead.  We can easily override this default behaviour by specifying `SlugRelatedField` in our serializer ...
+
+```python
+# sensor/api/serializers.py
+
+from rest_framework import serializers
+
+from ..models import File
+from ..models import FileType
+
+
+class FileSerializer(serializers.ModelSerializer):
+
+    type = serializers.SlugRelatedField(
+        slug_field="name", queryset=FileType.objects.all()
+    )
+
+    class Meta:
+        model = File
+        fields = '__all__'
+```
+
+... so we can create files by passing the endpoint a payload like ...
+
+```json
+{
+    "file": "file",
+    "type": "name-of-file-type",
+}
+```
+
+Now we have all of the information we need to extract timeseries from files into our data model.
+
+
+### Validate files
+
+What if a `File` is created with an inappropriate `FileType`?  How do we catch this before it causes importing to fail?  
+
+We can implement a `clean` method on `File`!  `Django` will automatically call this method on running `form.is_valid()` in our view, however, we'll have to connect `django-rest-framework` ourselves.  We can just add a `validate` method to our serializer to achieve the same behaviour.
+
+```python
+# sensor/api/serializers.py
+
+from rest_framework import serializers
+
+from ..models import File
+from ..models import FileType
+
+
+class FileSerializer(serializers.ModelSerializer):
+
+    # ...
+
+    def validate(self, attrs):
+        instance = File(**attrs)
+        instance.clean()
+        return attrs
+```
+
+Now we can implement the `clean` method to check file contents prior to saving a file ...
+
+```python
+# sensor/models.py
+
+from django.db import models
+from django.core.exceptions import ValidationError
+
+from .io import validate_datetime_fieldnames_in_lines
+
+# ...
+
+class File(models.Model):
+
+    # ...
+
+    def clean(self):
+
+        if self.type is None:
+            raise ValidationError("File type must be specified!")
+
+        # NOTE: This file is automatically closed upon saving a model instance
+        # ... each time a file is read the file pointer must be reset to enable rereads
+        f = self.file.open(mode="rb")
+
+        # NOTE: automatically called by Django Forms & DRF Serializer Validate Method
+        validate_datetime_fieldnames_in_lines(
+            lines=f,
+            encoding=self.type.encoding,
+            delimiter=self.type.delimiter,
+            datetime_fieldnames=self.type.datetime_fieldnames,
+        )
+        self.file.seek(0)
+
+
+# ...
+```
+
+```python
+# sensor/io.py
+
+import re
+import typing
+
+from django.core.exceptions import ValidationError
+
+
+def yield_split_lines(
+    lines: typing.Iterable[bytes],
+    encoding: str,
+    delimiter: str,
+) -> typing.Iterator[typing.Tuple[typing.Any]]:
+
+    # Unescape strings `\\t` to `\t` for use in a regular expression
+    # https://stackoverflow.com/questions/1885181/how-to-un-escape-a-backslash-escaped-string
+    unescape_backslash = lambda s: (
+        s.encode('raw_unicode_escape').decode('unicode_escape')
+    )
+    split = lambda s: re.split(unescape_backslash(delimiter), s)
+    return (split(line.decode(encoding)) for line in iter(lines))
+
+
+def validate_datetime_fieldnames_in_lines(
+    lines: typing.Iterable[bytes],
+    encoding: str,
+    delimiter: str,
+    datetime_fieldnames: typing.Iterable[str],
+) -> None:
+
+    split_lines = yield_split_lines(lines=lines, encoding=encoding, delimiter=delimiter)
+    fieldnames = None
+
+    for line in split_lines:
+        if set(datetime_fieldnames).issubset(set(line)):
+            fieldnames = line
+            break
+    
+    if fieldnames == None:
+        raise ValidationError(f"No `datetime_fieldnames` {datetime_fieldnames} found!")
+```
+
+
+### Import files
+
+Now we have everything we need to import files ...
+
+```python
+# sensor/models.py
+
+from datetime import datetime
+from datetime import timezone
+from itertools import islice
+
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db import transaction
+
+from .io import validate_datetime_fieldnames_in_lines
+from .io import yield_readings_in_narrow_format
+
+
+# ...
+
+
+class File(models.Model):
+
+    # ...
+
+    def import_to_db(self):
+
+        with self.file.open(mode="rb") as f:
+    
+            reading_objs = (
+                Reading(
+                    file=self,
+                    timestamp=r["timestamp"],
+                    sensor_name=r["sensor_name"],
+                    reading=r["reading"]
+                )
+                for r in yield_readings_in_narrow_format(
+                    lines=f,
+                    encoding=self.type.encoding,
+                    delimiter=self.type.delimiter,
+                    datetime_fieldnames=self.type.datetime_fieldnames,
+                    datetime_formats=self.type.datetime_formats,
+                )
+            )
+
+            batch_size = 1_000
+        
+            try:
+                with transaction.atomic():
+                    while True:
+                        batch = list(islice(reading_objs, batch_size))
+                        if not batch:
+                            break
+                        Reading.objects.bulk_create(batch, batch_size)
+
+            except Exception as e:
+                self.parsed_at = None
+                self.parse_error = str(e)
+                self.save()
+                raise e
+
+            else:
+                self.parsed_at = datetime.now(timezone.utc)
+                self.parse_error = None
+                self.save()
+```
+
+```python
+# sensor/io.py
+
+from collections import OrderedDict
+from datetime import datetime
+import re
+import typing
+
+from django.core.exceptions import ValidationError
+
+
+# ...
+
+
+def yield_readings_in_narrow_format(
+    lines: typing.Iterable[bytes],
+    encoding: str,
+    delimiter: str,
+    datetime_fieldnames: typing.Iterable[str],
+    datetime_formats: typing.Iterable[str],
+) -> typing.Iterator[typing.Tuple[typing.Any]]:
+    """
+    https://en.wikipedia.org/wiki/Wide_and_narrow_data
+    """
+
+    split_lines = yield_split_lines(lines=lines, encoding=encoding, delimiter=delimiter)
+    fieldnames = None
+
+    for line in split_lines:
+        if set(datetime_fieldnames).issubset(set(line)):
+            fieldnames = line
+            break
+    
+    if fieldnames == None:
+        raise ValidationError(f"No `datetime_fieldnames` {datetime_fieldnames} found!")
+
+    # NOTE: `split_lines` is an iterator so prior loop exhausts the header lines
+    for line in split_lines:
+        fields = OrderedDict([(f, v) for f, v in zip(fieldnames, line)])
+        readings = OrderedDict(
+            [(f, v) for f, v in fields.items() if f not in datetime_fieldnames]
+        )
+
+        timestamp_strs = [fields[k] for k in datetime_fieldnames]
+        timestamp_str = " ".join(
+            str(item) for item in timestamp_strs if item is not None
+        )
+
+        for datetime_format in datetime_formats:
+            try:
+                timestamp = datetime.strptime(timestamp_str, datetime_format)
+            except ValueError:
+                pass
+            else:
+                for sensor, reading in readings.items():
+                    yield {
+                        "timestamp": timestamp,
+                        "sensor_name": sensor,
+                        "reading": reading,
+                    }
+```
+
+How do we call the `import_to_db` method?
+
+We can go about this a few different ways but perhaps the simplest is just to implement it directly in the views & viewsets ...
+
+For `Django` we can call it directly in our `upload-file` view like ...
+
+```python
+if form.is_valid():
+    form.save()
+    form.instance.import_to_db()
+```
+
+... & for `django-rest-framework` we can override the `perform_create` method ...
+
+```python
+class FileViewSet(viewsets.ModelViewSet):
+
+    # ...
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.import_to_db()
+```
+
+
+---
+
+
+## Scaling long running tasks via Celery
 
 What if each file contains a few gigabytes of readings?  Won't this take an age to process?
 
@@ -416,29 +930,66 @@ If you can't guarantee that the sensor files are small enough that they can be p
 
 > A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
 
-`Celery` is a mature `Python` task queue library & works well with `Django`.  It supports `Redis` which acts as the intermediary between "waiters" & "chefs" using the above analogy (or message broker).
+> If your files are small enough so that importing is instantaneous you might not need a task queue
 
+`Celery` is a mature `Python` task queue library & works well with `Django` so let's use it.  It coordinates "waiters" & "chefs" using the above analogy by leveraging a database (or message broker), typically `Redis` or `RabbitMQ`.
 
+> `Celery` may not work well on `Windows`, so consider trying `dramatiq` instead if this is a hard requirement
 
+> Why not use `Postgres` as a message broker?  The [`django-q`](https://github.com/Koed00/django-q) implements enables this via the `Django ORM` message broker.  For small-scale applications this might be a better choice since it reduces system complexity
 
-
-### Handle importing readings from files
-
-
-Naively, one might then ...
+To setup `Celery`, we can follow their [official tutorial](https://docs.celeryq.dev/en/main/django/first-steps-with-django.html) ...
 
 ```python
-import csv
+# core/celery.py
 
-from .models import SensorReading
+import os
+
+from celery import Celery
+
+# Set the default Django settings module for the 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
+app = Celery('core')
+
+# Using a string here means the worker doesn't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Load task modules from all registered Django apps.
+app.autodiscover_tasks()
 
 
-sensor_readings_file = "readings.csv"
-
-with open(file) as f:
-    for line in f:
-        destination.write(chunk)
+@app.task(bind=True, ignore_result=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}')
 ```
+
+```python
+# core/settings.py
+
+# ...
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+```
+
+So now we can add tasks to `sensor/tasks.py` like ...
+
+```python
+# sensor/tasks.py
+
+from celery import shared_task
+
+
+@shared_task
+def import_to_db(file_obj):
+    file_obj.import_to_db()
+```
+
+... & replace `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)` & this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
+
 
 ---
 
