@@ -17,17 +17,18 @@ Since `TimescaleDB`[^TIMESCALEDB] is an extension to `Postgres`,  switching to `
 
 Let's walk through an example project to make these adaptations a bit more concrete.
 
-If you want to follow along locally, you can setup a developer environment via [django-timescaledb-example](https://github.com/rdmolony/django-timescaledb-example)
+If you want to follow along locally, you can setup a developer environment via [`django-timescaledb-example`](https://github.com/rdmolony/django-timescaledb-example)
 
-> If you have any trouble getting setup,  feel free to ask a question at [django-timescaledb-example/discussions](https://github.com/rdmolony/django-timescaledb-example/discussions)
+> If you have any trouble getting setup,  feel free to ask a question at [`django-timescaledb-example/discussions`](https://github.com/rdmolony/django-timescaledb-example/discussions)
 
-> This tutorial assumes some familiarity with `Django` or a similar web framework.  If you have never used `Django` I highly recommend [the official Django tutorial"](https://docs.djangoproject.com/en/5.0/intro/tutorial01/)
+> This tutorial assumes some familiarity with `Django` or a similar web framework.  If you have never used `Django` I highly recommend [the official tutorial](https://docs.djangoproject.com/en/5.0/intro/tutorial01/)
 
 
 {% capture table_of_contents %}
 
 - [Getting data in](#getting-data-in)
   - [Create an app](#create-an-app)
+  - [Create a home page](#create-a-home-page)
   - [Create a Data Model for Files](#create-a-data-model-for-files)
   - [Handle file uploads via Browser](#handle-file-uploads-via-browser)
   - [Handle file uploads via API](#handle-file-uploads-via-api)
@@ -98,6 +99,64 @@ INSTALLED_APPS = [
 ]
 ```
 
+### Create a home page
+
+Let's quickly create a home page which will be displayed on first opening this web application in a browser ...
+
+```python
+# sensor/views.py
+
+from django.shortcuts import render
+
+
+def index(request):
+    return render(request, "index.html")
+```
+
+{% raw %}
+```html
+<!--- sensor/templates/index.html -->
+
+<div style="text-align: center">
+  <h1>django-timescaledb-example</h1>
+</div>
+```
+{% endraw %}
+
+```python
+# sensor/urls.py
+
+from django.urls import path
+
+from . import views
+
+
+app_name = "sensor"
+
+
+urlpatterns = [
+    path('', views.index, name="root"),
+]
+```
+
+```python
+# core/urls.py
+
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import include
+from django.urls import path
+
+
+urlpatterns = [
+    path('', lambda request: redirect('sensor:root')),
+
+    path('admin/', admin.site.urls),
+    path('sensor/', include('sensor.urls')),
+]
+```
+
+Now [`http://localhost:8000`](http://localhost:8000) should display a single line of text "django-timescaledb-example".  We can build on this `index.html` to link to other pages.
 
 ### Create a Data Model for Files
 
@@ -127,7 +186,7 @@ python manage.py makemigrations sensor
 python manage.py migrate
 ```
 
-> Any change to `sensor/models.py` requires a corresponding migration!
+> Any change to `sensor/models.py` requires a corresponding database migration
 
 
 ### Handle file uploads via Browser
@@ -173,8 +232,8 @@ class FileForm(ModelForm):
         fields = "__all__"
 ```
 
-{% raw %}
 ```html
+{% raw %}
 <!--- sensor/templates/upload.html -->
 
 <div style="text-align: center">
@@ -193,10 +252,24 @@ class FileForm(ModelForm):
     <input type="submit" value="Save"></input>
   </form>
 </div>
-```
 {% endraw %}
+```
 
-> Each change to `sensor/views.py` requires a corresponding route in `sensor/urls.py` (which I excluded here) so `Django` knows where to look when it receives a request for `/sensor/upload-file/`.  See the linked `GitHub` repository for the full details.
+```python
+# sensor/urls.py
+
+from django.urls import path
+
+from . import views
+
+
+app_name = "sensor"
+
+
+urlpatterns = [
+    path('upload-file/', views.upload_file, name="upload-file"),
+]
+```
 
 This requires someone clicking through this web application every time they want to add new data.  If data is synced automatically from remote sensors to a file system somewhere, then why not setup automatic file uploads?  For this we need an API.
 
@@ -207,7 +280,7 @@ An API (or Application Programming Interface) lets our web application accept fi
 
 The `django-rest-framework` library does a lot of heavy lifting here so let's use it.
 
-> If you have never used `django-rest-framework` consider first completing the [official Django Rest Framework tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
+> If you have never used `django-rest-framework` consider first completing the [official tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
 
 We can use a "viewset" to automatically create an endpoint (like `/api/sensor/file/`) that accepts file uploads ...
 
@@ -242,12 +315,12 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ['__all__']
 ```
 
-> Similarly to `sensor/views.py` each change to `sensor/api/viewsets.py` requires a corresponding route in `sensor/api_urls.py`.  See the linked `GitHub` repository for the full details. 
+> Similarly to `sensor/views.py` each change to `sensor/api/viewsets.py` requires a corresponding route in `sensor/api_urls.py`.  See [`django-timescaledb-example``](https://github.com/rdmolony/django-timescaledb-example) for the full details. 
 
 
 ### Create a Data Model for Readings
 
-Let's add a `Reading` model to store readings by adapting `sensor/models.py`[^DJANGO_TABLE_NAME] ...
+Let's add a `Reading` model to store readings ...
 
 ```python
 # sensor/models.py
@@ -257,33 +330,33 @@ from django.db import models
 # ....
 
 class Reading(models.Model):
-    timestamp = models.DateTimeField(blank=False, null=False)
-    sensor_name = models.TextField(blank=False, null=False)
-    reading = models.FloatField(blank=False, null=False)
-```
 
-... & thus (again) create its migration & roll it out to create table `sensor_reading`[^DJANGO_TABLE_NAME] in the database.
+    class Meta:
+        managed = False
+
+    file = models.ForeignKey(File, on_delete=models.RESTRICT)
+    timestamp = models.DateTimeField(blank=False, null=False, primary_key=True)
+    sensor_name = models.TextField(blank=False, null=False)
+    reading = models.TextField(blank=False, null=False)
+
+```
 
 [^DJANGO_TABLE_NAME]: `Django` automatically infers `sensor_` in the table name from the name of the app
 
+This time we're using `timestamp` instead of the default `id` field as a primary key,  since row uniqueness can be defined by a composite of `file`, `timestamp` & `sensor_name` if required.
 
-If I connect to the database[^DBEAVER] I can see that this has been created with three columns: `id`, `sensor_name` & `reading`.   Where did `id` come from?  By default,  `Django` creates tables with an automatically incrementing `id` column (a `PRIMARY KEY`) which uniquely identifies each row.  Every time a new row is added to this table,  `id` increments by one. 
-
-[^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  I could also just use `psql` which ships with `Postgres`
-
-Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.
-
-Let's create a "base" migration ...
+Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.  Since we need to customise table creation ourselves rather than letting `Django` do it we need to set `managed` to `False`.  Let's create a "base" migration ...
 
 ```sh
 python manage.py makemigrations sensor --name "sensor_reading"
 ```
 
-... and manually edit it ourselves to create a `Hypertable` ...
+... and manually edit the migration ...
 
 ```python
 # sensor/migrations/0002_sensor_reading.py
 
+import django.db.models.deletion
 from django.db import migrations, models
 
 
@@ -296,8 +369,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Reading',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField()),
+                ('file', models.ForeignKey(default=None, on_delete=django.db.models.deletion.RESTRICT, to='sensor.file')),
+                ('timestamp', models.DateTimeField(primary_key=True)),
                 ('sensor_name', models.TextField()),
                 ('reading', models.FloatField()),
             ],
@@ -308,6 +381,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             """
             CREATE TABLE sensor_reading (
+                file_id INTEGER NOT NULL REFERENCES sensor_file (id),
                 timestamp TIMESTAMP NOT NULL,
                 sensor_name TEXT NOT NULL,
                 reading FLOAT
@@ -321,32 +395,15 @@ class Migration(migrations.Migration):
     ]
 ```
 
-Since we are managing this table ourselves, we also have to adapt `sensor/models.py` so that `Django` ignores it, and doesn't attempt to create an `id` column ...
-
-```python
-# sensor/models.py
-
-from django.db import models
-
-class Reading(models.Model):
-    timestamp = models.DateTimeField(blank=False, null=False)
-    sensor_name = models.TextField(blank=False, null=False)
-    reading = models.FloatField(blank=False, null=False)
-    
-    class Meta:
-        managed = False
-```
-
-> Note that this table does not include an auto-generated `id` column as `PRIMARY KEY` like the previous data model.  We don't necessarily need a primary key unless we really care about blocking the saving of duplicate `timestamp, sensor_name`.
-
-
 Now we can roll out migrations ...
 
 ```sh
 python manage.py migrate
 ```
 
-... & connect to the database[^DBEAVER] to see the newly created `Hypertable`.
+... & connect to the database[^DBEAVER] to inspect the newly created `Hypertable`.
+
+[^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  I could also just use `psql` which ships with `Postgres`
 
 
 ### Import Readings
