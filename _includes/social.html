@@ -4,8 +4,13 @@
     <img class="dark:invert inline-block h-6 mx-1 p-0" src="/assets/images/icons/home.svg" alt="home.svg">
   </a>
   {%- if site.github_username -%}
-    <a href="https://github.com/{{ site.github_username| cgi_escape | escape }}">
+    <a href="https://github.com/{{ site.github_username | cgi_escape | escape }}">
       <img class="dark:invert inline-block h-6 mx-0 p-0" src="/assets/images/icons/github.svg" alt="github.svg">
+    </a>
+  {%- endif -%}
+  {%- if site.stackoverflow_username -%}
+    <a href="https://stackoverflow.com/users/{{ site.stackoverflow_username | cgi_escape | escape }}">
+      <img class="dark:invert inline-block h-6 ml-0.5 -mr-0.5 p-0" src="/assets/images/icons/stackoverflow.svg" alt="stackoverflow.svg">
     </a>
   {%- endif -%}
   {%- if site.linkedin_username -%}
