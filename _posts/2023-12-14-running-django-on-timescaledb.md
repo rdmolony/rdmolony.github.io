@@ -432,7 +432,7 @@ class Reading(models.Model):
 
 This time we're using `timestamp` instead of the default `id` field as a primary key,  since row uniqueness can be defined by a composite of `file`, `timestamp` & `sensor_name` if required.
 
-Don't we want to store readings in a `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.  Since we need to customise table creation ourselves rather than letting `Django` do it we need to set `managed` to `False`.  Let's create a "base" migration ...
+Don't we want to store readings in a `TimescaleDB` `Hypertable`[^TIMESCALEDB] to make them easier to work with?  `Django` won't automatically create a `Hypertable` (it wasn't designed to) so we need to do so ourselves.  Since we need to customise table creation ourselves rather than letting `Django` do it we need to set `managed` to `False`.  Let's create a "base" migration ...
 
 ```sh
 python manage.py makemigrations sensor --name "sensor_reading"
@@ -982,13 +982,16 @@ So now we can add tasks to `sensor/tasks.py` like ...
 
 from celery import shared_task
 
+from .models import File
+
 
 @shared_task
-def import_to_db(file_obj):
+def import_to_db(file_id):
+    file_obj = File.objects.get(id=file_id)
     file_obj.import_to_db()
 ```
 
-... & replace `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)` & this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
+... & replace all calls to `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)` & this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
 
 
 ---
