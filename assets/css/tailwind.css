@@ -843,6 +843,10 @@ div.highlighter-rouge {
   margin: 0.5rem;
 }
 
+.m-0 {
+  margin: 0px;
+}
+
 .mx-0 {
   margin-left: 0px;
   margin-right: 0px;
@@ -868,6 +872,11 @@ div.highlighter-rouge {
   margin-bottom: 0.5rem;
 }
 
+.-mx-1 {
+  margin-left: -0.25rem;
+  margin-right: -0.25rem;
+}
+
 .mb-20 {
   margin-bottom: 5rem;
 }
@@ -880,8 +889,28 @@ div.highlighter-rouge {
   margin-top: 1rem;
 }
 
+.mb-0 {
+  margin-bottom: 0px;
+}
+
+.mb-0\.5 {
+  margin-bottom: 0.125rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.-ml-1 {
+  margin-left: -0.25rem;
+}
+
 .inline-block {
   display: inline-block;
+}
+
+.flex {
+  display: flex;
 }
 
 .table {
@@ -904,6 +933,18 @@ div.highlighter-rouge {
   height: 1.5rem;
 }
 
+.h-2 {
+  height: 0.5rem;
+}
+
+.h-4 {
+  height: 1rem;
+}
+
+.h-3 {
+  height: 0.75rem;
+}
+
 .w-6 {
   width: 1.5rem;
 }
@@ -924,6 +965,10 @@ div.highlighter-rouge {
   list-style-type: none;
 }
 
+.items-center {
+  align-items: center;
+}
+
 .p-0 {
   padding: 0px;
 }
@@ -932,12 +977,30 @@ div.highlighter-rouge {
   padding: 0.5rem;
 }
 
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
 .pb-2 {
   padding-bottom: 0.5rem;
 }
 
 .pl-0 {
   padding-left: 0px;
+}
+
+.pl-1 {
+  padding-left: 0.25rem;
+}
+
+.pl-0\.5 {
+  padding-left: 0.125rem;
 }
 
 .text-left {
