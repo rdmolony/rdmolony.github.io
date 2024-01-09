@@ -5,10 +5,46 @@
 
   <body>
 
+    <nav class="fixed top-4 left-4 z-50">
+      <div id="sidebar" class="hidden">
+        <!-- <div class="table-of-contents"> will be coepied here if present -->
+        <button id="toggle-sidebar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </nav>
+
     <main aria-label="Content">
       {{ content }}
     </main>
 
   </body>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+  
+      const tocDiv = document.querySelector('#table-of-contents');
+      const tocUl = tocDiv.querySelector('ul');
+
+      const sidebar = document.getElementById('sidebar');
+      const toggleSidebarButton = document.getElementById('toggle-sidebar');
+  
+      if (tocUl && sidebar) {
+        const clonedUL = tocDiv.cloneNode(true);
+        clonedUL.id = "sidebar-table-of-contents"
+        clonedUL.classList.add("hidden");
+        sidebar.appendChild(clonedUL);
+        sidebar.classList.remove("hidden");
+      }
+  
+      toggleSidebarButton.addEventListener('click', () => {
+        const sidebarToc = document.getElementById("sidebar-table-of-contents")
+        sidebarToc.classList.toggle('hidden');
+      });
+
+    });
+  </script>
 
 </html>
