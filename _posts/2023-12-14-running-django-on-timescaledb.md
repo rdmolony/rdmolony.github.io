@@ -2,10 +2,12 @@
 title: "Running Django on TimescaleDB"
 layout: "post"
 description: |
-  Some thoughts on making Django & TimescaleDB play nicely
+  Some thoughts on making Django & TimescaleDB play **nicely**
 ---
 
-In [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}) I reflect on rebuilding a data flow system on top of `TimescaleDB` so that I could store timeseries readings alongside a "CRUD"[^CRUD] web application.  I do not, however, discuss how I adapted a `Django`[^DJANGO] web application to play nicely with it.
+Over 2022/23 while working at `Mainstream Renewable Power` on an internal web application, I maintained a "data pipeline" which fetches files of sensor readings from the world's most remote places, and transforms them into useful data sets, which form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.  I rebuilt the pipeline on top of `TimescaleDB`[^TIMESCALEDB], which enabled me to massively reduce the complexity of the system involved.
+
+I reflect on this experience in detail in [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}).  I do not, however, discuss how I adapted `Django`[^DJANGO] to play nicely with this database.
 
 [^DJANGO]: `Django` is a `Python` web framework.  In my case, it served as the "glue" between web browsers and a database.  Specifically, to display a web page it asks a database for the data it needs to render files that the browser interprets (`HTML`, `CSS` & `JavaScript`) so it can display a user interface
 
@@ -26,19 +28,22 @@ If you want to follow along locally, you can setup a developer environment via [
 
 {% capture table_of_contents %}
 
-- [Getting data in](#getting-data-in)
-  - [Create an app](#create-an-app)
-  - [Create a home page](#create-a-home-page)
-  - [Create a Data Model for Files](#create-a-data-model-for-files)
-  - [Handle file uploads via Browser](#handle-file-uploads-via-browser)
-  - [Create an API home page](#create-an-api-home-page)
-  - [Handle file uploads via API](#handle-file-uploads-via-api)
-  - [Create a Data Model for Readings](#create-a-data-model-for-readings)
-  - [Handle importing readings from files](#handle-importing-readings-from-files)
-  - [Validate files](#validate-files)
-  - [Import files](#import-files)
-- [Scaling long running tasks via Celery](#scaling-long-running-tasks-via-celery)
-- [Getting data out](#getting-data-out)
+- [Intro](#intro)
+- [Create an app](#create-an-app)
+- [Create a home page](#create-a-home-page)
+- [Create a Data Model for Files](#create-a-data-model-for-files)
+- [Handle file uploads via Browser](#handle-file-uploads-via-browser)
+- [Create an API home page](#create-an-api-home-page)
+- [Handle file uploads via API](#handle-file-uploads-via-api)
+- [Create a Data Model for Readings](#create-a-data-model-for-readings)
+- [Import Files](#import-files)
+- [Import Files via Celery](#import-files-via-celery)
+- [Next Steps?](#next-steps)
+- [Bonus](#bonus)
+  - [Import Messy Files](#import-messy-files)
+  - [Validate Messy Files](#validate-messy-files)
+  - [Import \& Validate Messy Files](#import--validate-messy-files)
+- [Footnotes](#footnotes)
 
 {% endcapture %}
 {% include toc.html content=table_of_contents %}
@@ -47,7 +52,7 @@ If you want to follow along locally, you can setup a developer environment via [
 ---
 
 
-## Getting data in
+## Intro
 
 In my case all of the timeseries data originated from text files.  How do I copy data from files into `TimescaleDB` via `Django`?
 
@@ -62,7 +67,7 @@ The key enabler here is the [ORM (or "Object Relational Mapper")](https://en.wik
 We need to do a bit of work to adapt this workflow to handle file contents.
 
 
-### Create an app
+## Create an app
 
 Let's first run ...
 
@@ -102,7 +107,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-### Create a home page
+## Create a home page
 
 Let's quickly create a home page which will be displayed on first opening this web application in a browser ...
 
@@ -162,7 +167,7 @@ urlpatterns = [
 So now [`http://localhost:8000`](http://localhost:8000) should display `index.html`.  We can build on this `index.html` to link to other pages.
 
 
-### Create a Data Model for Files
+## Create a Data Model for Files
 
 Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files ...
 
@@ -193,7 +198,7 @@ python manage.py migrate
 > Any change to `sensor/models.py` requires a corresponding database migration!
 
 
-### Handle file uploads via Browser
+## Handle file uploads via Browser
 
 Now that we have somewhere to store files of readings,  we need to handle file uploads.
 
@@ -293,7 +298,7 @@ The `django-rest-framework` library does a lot of heavy lifting here so let's us
 > If you have never used `django-rest-framework` consider first completing the [official tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
 
 
-### Create an API home page
+## Create an API home page
 
 As suggested by [`Two Scoops of Django 3.x`](https://www.feldroy.com/books/two-scoops-of-django-3-x) let's create `core/api_urls.py` to wire up our API ...
 
@@ -369,7 +374,7 @@ urlpatterns = [
 So now we can add new views &/or viewsets to `sensor/api_urls.py` & they will be "connectable" via `/api/sensor/`
 
 
-### Handle file uploads via API
+## Handle file uploads via API
 
 We can use a "viewset" to create an endpoint like `/api/sensor/file/` to which another program can upload files ...
 
@@ -403,7 +408,7 @@ class FileSerializer(serializers.ModelSerializer):
 
 
 
-### Create a Data Model for Readings
+## Create a Data Model for Readings
 
 Let's add a `Reading` model to store readings ...
 
@@ -493,7 +498,189 @@ python manage.py migrate
 [^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  I could also just use `psql` which ships with `Postgres`
 
 
-### Handle importing readings from files
+## Import Files
+
+Let's imagine that all of our readings are stored nicely formatted in `JSON` files like ...
+
+```json
+[
+    {
+      "reading": 20.54,
+      "sensor_name": "M(m/s)",
+      "timestamp": "2015-12-22 00:00:00",
+    },
+    {
+      "reading": 211.0,
+      "sensor_name": "D(deg)",
+      "timestamp": "2015-12-22 00:00:00",
+    },
+]
+```
+
+How do we import these readings?
+
+We can add a method to `File` to bring the `JSON` file into `Python` & create a new `Reading` entry for each reading in the file ...
+
+```python
+# sensor/models.py
+
+from datetime import datetime
+from datetime import timezone
+from itertools import islice
+
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+from django.db import transaction
+
+from .io import validate_datetime_fieldnames_in_lines
+from .io import yield_readings_in_narrow_format
+
+
+# ...
+
+
+class File(models.Model):
+
+    # ...
+
+    def import_to_db(self):
+
+        # NOTE: assume uploaded file is JSON
+        with self.file.open(mode="rb") as f:
+
+            reading_objs = (
+                Reading(
+                    file=self,
+                    timestamp=r["timestamp"],
+                    sensor_name=r["sensor_name"],
+                    reading=r["reading"]
+                )
+                for r in json.load(f)
+            )
+
+            batch_size = 1_000
+
+            with transaction.atomic():
+                while True:
+                    batch = list(islice(reading_objs, batch_size))
+                    if not batch:
+                        break
+                    Reading.objects.bulk_create(batch, batch_size)
+```
+
+How do we call the `import_to_db` method?
+
+We can go about this a few different ways but perhaps the simplest is just to implement it directly in the views & viewsets so that it will be triggered on browser & API file uploads ...
+
+For `Django` we can call it directly in our `upload-file` view like ...
+
+```python
+if form.is_valid():
+    form.save()
+    form.instance.import_to_db()
+```
+
+... & for `django-rest-framework` we can override the `perform_create` method ...
+
+```python
+class FileViewSet(viewsets.ModelViewSet):
+
+    # ...
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.import_to_db()
+```
+
+
+## Import Files via Celery
+
+What if each file contains a few gigabytes of readings?  Won't this take an age to process?
+
+If you can't guarantee that the sensor files are small enough that they can be processed quickly then you might need to offload file importing to a task queue.
+
+> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
+
+> If your files are small enough so that importing is instantaneous you might not need a task queue
+
+`Celery` is a mature `Python` task queue library & works well with `Django` so let's use it.  It coordinates "waiters" & "chefs" using the above analogy by leveraging a database (or message broker), typically `Redis` or `RabbitMQ`.
+
+A task queue can significantly improves performance here.  It makes file uploads instant from the user's perspective, since now file upload tasks are added to a queue rather than run immediately.  It also enables parallel processing of files since task queue workers run in parallel to one another.
+
+> `Celery` may not work well on `Windows`, so consider trying `dramatiq` instead if this is a hard requirement
+
+> Why not use `Postgres` as a message broker?  The [`django-q`](https://github.com/Koed00/django-q) implements enables this via the `Django ORM` message broker.  For small-scale applications this might be a better choice since it reduces system complexity
+
+To setup `Celery`, we can follow their [official tutorial](https://docs.celeryq.dev/en/main/django/first-steps-with-django.html) ...
+
+```python
+# core/celery.py
+
+import os
+
+from celery import Celery
+
+# Set the default Django settings module for the 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
+app = Celery('core')
+
+# Using a string here means the worker doesn't have to serialize
+# the configuration object to child processes.
+# - namespace='CELERY' means all celery-related configuration keys
+#   should have a `CELERY_` prefix.
+app.config_from_object('django.conf:settings', namespace='CELERY')
+
+# Load task modules from all registered Django apps.
+app.autodiscover_tasks()
+
+
+@app.task(bind=True, ignore_result=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}')
+```
+
+```python
+# core/settings.py
+
+# ...
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+```
+
+So now we can add tasks to `sensor/tasks.py` like ...
+
+```python
+# sensor/tasks.py
+
+from celery import shared_task
+
+from .models import File
+
+
+@shared_task
+def import_to_db(file_id):
+    file_obj = File.objects.get(id=file_id)
+    file_obj.import_to_db()
+```
+
+... & replace all calls to `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)` & this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
+
+
+## Next Steps?
+
+If you really want to further eke out import performance you'll have to go deeper and experiment with:
+
+- **Batch sizes**: how many readings do you want to save at once?
+- **Compression**: `TimescaleDB` really shines once `Hypertables` are compressed since it reduces storage costs & faster analytics queries
+
+
+---
+
+
+## Bonus
+
+### Import Messy Files
 
 How do we convert files like ...
 
@@ -657,7 +844,7 @@ class FileSerializer(serializers.ModelSerializer):
 Now we have all of the information we need to extract timeseries from files into our data model.
 
 
-### Validate files
+### Validate Messy Files
 
 What if a `File` is created with an inappropriate `FileType`?  How do we catch this before it causes importing to fail?  
 
@@ -764,7 +951,7 @@ def validate_datetime_fieldnames_in_lines(
 ```
 
 
-### Import files
+### Import & Validate Messy Files
 
 Now we have everything we need to import files ...
 
@@ -922,79 +1109,4 @@ class FileViewSet(viewsets.ModelViewSet):
 ---
 
 
-## Scaling long running tasks via Celery
-
-What if each file contains a few gigabytes of readings?  Won't this take an age to process?
-
-If you can't guarantee that the sensor files are small enough that they can be processed quickly then you might need to offload file importing to a task queue.
-
-> A task queue works like a restaurant.  The waiters add an order to the queue & the chefs pull orders from the queue when they have time to process it.
-
-> If your files are small enough so that importing is instantaneous you might not need a task queue
-
-`Celery` is a mature `Python` task queue library & works well with `Django` so let's use it.  It coordinates "waiters" & "chefs" using the above analogy by leveraging a database (or message broker), typically `Redis` or `RabbitMQ`.
-
-> `Celery` may not work well on `Windows`, so consider trying `dramatiq` instead if this is a hard requirement
-
-> Why not use `Postgres` as a message broker?  The [`django-q`](https://github.com/Koed00/django-q) implements enables this via the `Django ORM` message broker.  For small-scale applications this might be a better choice since it reduces system complexity
-
-To setup `Celery`, we can follow their [official tutorial](https://docs.celeryq.dev/en/main/django/first-steps-with-django.html) ...
-
-```python
-# core/celery.py
-
-import os
-
-from celery import Celery
-
-# Set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
-
-app = Celery('core')
-
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
-# - namespace='CELERY' means all celery-related configuration keys
-#   should have a `CELERY_` prefix.
-app.config_from_object('django.conf:settings', namespace='CELERY')
-
-# Load task modules from all registered Django apps.
-app.autodiscover_tasks()
-
-
-@app.task(bind=True, ignore_result=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
-```
-
-```python
-# core/settings.py
-
-# ...
-
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-```
-
-So now we can add tasks to `sensor/tasks.py` like ...
-
-```python
-# sensor/tasks.py
-
-from celery import shared_task
-
-from .models import File
-
-
-@shared_task
-def import_to_db(file_id):
-    file_obj = File.objects.get(id=file_id)
-    file_obj.import_to_db()
-```
-
-... & replace all calls to `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)` & this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
-
-
----
-
-
-## Getting data out
+## Footnotes
