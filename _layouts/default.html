@@ -25,23 +25,21 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
   
-      const tocDiv = document.querySelector('#table-of-contents');
-      const tocUl = tocDiv.querySelector('ul');
+      // Pull table of contents into a sidebar
 
+      const tocUl = document.querySelector('#table-of-contents > ul');
       const sidebar = document.getElementById('sidebar');
-      const toggleSidebarButton = document.getElementById('toggle-sidebar');
-  
+
       if (tocUl && sidebar) {
-        const clonedUL = tocDiv.cloneNode(true);
+        const clonedUL = document.querySelector('#table-of-contents').cloneNode(true);
         clonedUL.id = "sidebar-table-of-contents"
         clonedUL.classList.add("hidden");
         sidebar.appendChild(clonedUL);
         sidebar.classList.remove("hidden");
       }
-  
-      toggleSidebarButton.addEventListener('click', () => {
-        const sidebarToc = document.getElementById("sidebar-table-of-contents")
-        sidebarToc.classList.toggle('hidden');
+
+      document.getElementById('toggle-sidebar').addEventListener('click', () => {
+        document.getElementById("sidebar-table-of-contents").classList.toggle('hidden');
       });
 
     });
