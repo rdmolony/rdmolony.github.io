@@ -26,6 +26,7 @@
     document.addEventListener('DOMContentLoaded', () => {
   
       // Pull table of contents into a sidebar
+      // ------------------------------------- 
 
       const tocUl = document.querySelector('#table-of-contents > ul');
       const sidebar = document.getElementById('sidebar');
@@ -41,6 +42,17 @@
       document.getElementById('toggle-sidebar').addEventListener('click', () => {
         document.getElementById("sidebar-table-of-contents").classList.toggle('hidden');
       });
+
+      // ------------------------------------- 
+
+      // Prepend "copy to clipboard" button to code blocks
+      // -------------------------------------------------
+
+      const codeBlocks = document.querySelector('.language-python');
+      const button = document.createElement("button")
+
+      // -------------------------------------------------
+
 
     });
   </script>
