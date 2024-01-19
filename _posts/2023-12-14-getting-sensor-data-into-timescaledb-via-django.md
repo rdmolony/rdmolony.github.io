@@ -86,6 +86,10 @@ INSTALLED_APPS = [
 ]
 ```
 
+
+---
+
+
 ## Create a Homepage
 
 Let's quickly create a home page which will be displayed on first opening this web application in a browser.
@@ -146,6 +150,9 @@ urlpatterns = [
 So now [`http://localhost:8000`](http://localhost:8000) should display `index.html`.  We can build on this `index.html` to link to other pages.
 
 
+---
+
+
 ## Create a Data Model for Files
 
 Now I can adapt `sensor/models.py` to add a `File` model to track uploaded files,
@@ -175,6 +182,9 @@ python manage.py migrate
 ```
 
 > Any change to `sensor/models.py` requires a corresponding database migration!
+
+
+---
 
 
 ## Handle File Uploads via Browser
@@ -289,6 +299,9 @@ The `django-rest-framework` library does a lot of heavy lifting here so let's us
 > If you have never used `django-rest-framework` consider first completing the [official tutorial](https://www.django-rest-framework.org/tutorial/quickstart/) before continuing on here
 
 
+---
+
+
 ## Create an API home page
 
 As suggested by [`Two Scoops of Django 3.x`](https://www.feldroy.com/books/two-scoops-of-django-3-x) let's create `core/api_urls.py` to wire up our API.
@@ -365,6 +378,9 @@ urlpatterns = [
 So now we can add new views and/or viewsets to `sensor/api_urls.py` and they will be "connectable" via `/api/sensor/`
 
 
+---
+
+
 ## Handle file uploads via API
 
 We can use a "viewset" to create an endpoint like `/api/sensor/file/` to which another program can upload files:
@@ -397,6 +413,8 @@ class FileSerializer(serializers.ModelSerializer):
         fields = ['__all__']
 ```
 
+
+---
 
 
 ## Create a Data Model for Readings
@@ -487,6 +505,9 @@ python manage.py migrate
 and connect to the database[^DBEAVER] to inspect the newly created `Hypertable`.
 
 [^DBEAVER]: I use [`DBeaver`](https://github.com/dbeaver/dbeaver),  one could also just use `psql` which ships with `Postgres`
+
+
+---
 
 
 ## Import Files
@@ -584,6 +605,9 @@ class FileViewSet(viewsets.ModelViewSet):
 ```
 
 
+---
+
+
 ## Import Files via Celery
 
 What if each file contains a few gigabytes of readings?  Won't this take an age to process?
@@ -654,6 +678,9 @@ def import_to_db(file_id):
 ```
 
 And replace all calls to `<file_obj>.import_to_db()` with `tasks.import_to_db(file_obj)`, and this task won't be run immediately but rather will be run by `Celery` when it has availability to do so!
+
+
+---
 
 
 ## Next Steps?
@@ -835,6 +862,9 @@ so we can create files by passing the endpoint a payload like:
 Now we have all of the information we need to extract timeseries from files into our data model.
 
 
+---
+
+
 ### Validate Messy Files
 
 What if a `File` is created with an inappropriate `FileType`?  How do we catch this before it causes importing to fail?  
@@ -940,6 +970,9 @@ def validate_datetime_fieldnames_in_lines(
     if fieldnames == None:
         raise ValidationError(f"No `datetime_fieldnames` {datetime_fieldnames} found!")
 ```
+
+
+---
 
 
 ### Import and Validate Messy Files
