@@ -8,7 +8,7 @@
     @apply bg-slate-50 dark:text-slate-100 dark:bg-slate-800 max-w-xl mx-auto mt-6 mb-9 p-4
   }
   a {
-    @apply text-blue-600 hover:bg-blue-300 hover:text-slate-50 hover:rounded-lg hover:p-1 
+    @apply text-blue-600 dark:text-blue-200 hover:bg-blue-300 hover:text-slate-50 hover:rounded-lg hover:p-1 
   }
   hr {
     @apply h-px border-0 m-8 bg-slate-400 shadow-lg
