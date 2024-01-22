@@ -5,6 +5,8 @@ description: |
   A step-by-step tutorial on getting sensor data from files into TimescaleDB via Django
 ---
 
+> This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)
+
 Over 2022-23 while working at `Mainstream Renewable Power` on an internal web application, I maintained a "data pipeline" that fetches files of sensor data readings from the world's most remote places, and transforms them into useful datasets.  These datasets form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.  I rebuilt the pipeline on top of `TimescaleDB`[^TIMESCALEDB], which enabled me to massively reduce the complexity of the system involved.
 
 [^TIMESCALEDB]: Don’t know what TimescaleDB is? [Read this article](https://www.timescale.com/learn/is-postgres-partitioning-really-that-hard-introducing-hypertables).
