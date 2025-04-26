@@ -6,10 +6,13 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
       run-jekyll = pkgs.writeShellScriptBin "run-jekyll" ''
-        ${pkgs.ruby}/bin/bundle exec jekyll serve --livereload
+        bundle exec jekyll serve --livereload
       '';
       run-tailwind = pkgs.writeShellScriptBin "run-tailwind" ''
-        ${pkgs.tailwindcss}/bin/tailwindcss --watch -i ./tailwind.css -o ./assets/css/tailwind.css
+        npx tailwind --watch -i ./tailwind.css -o ./assets/css/tailwind.css
+      '';
+      run-storybook = pkgs.writeShellScriptBin "run-storybook" ''
+        npx storybook dev
       '';
     in
     {
@@ -17,7 +20,9 @@
         buildInputs = with pkgs; [
           run-jekyll
           run-tailwind
+          run-storybook
           ruby
+          nodejs
         ];
       };
     }
