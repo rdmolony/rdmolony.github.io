@@ -3,7 +3,8 @@ title: "Getting Sensor Data Into TimescaleDB via Django"
 layout: "post"
 description: |
   A step-by-step tutorial on getting sensor data from files into TimescaleDB via Django
-archived: false
+archived: true
+permalink: /blog/:year-:month-:day-:title.html
 ---
 
 > This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)

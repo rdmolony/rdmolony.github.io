@@ -6,7 +6,8 @@ redirect_from:
   - /blog/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python
 description: |
   Some thoughts on learning & developing Python to "reproducibly" estimate regional building energy demands
-archived: false
+archived: true
+permalink: /blog/:year-:month-:day-:title.html
 ---
 
 {% capture tldr %}

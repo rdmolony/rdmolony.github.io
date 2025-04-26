@@ -5,7 +5,8 @@ description: |
   Some thoughts on an unusual university engineering project (2018/19)
 show_description: false
 image: /assets/images/orangeworks.png
-archived: false
+archived: true
+permalink: /blog/:year-:month-:day-:title.html
 ---
 
 Over 2018/19 my 8 person Trinity / University of Sao Paolo engineering team was challenged by an Irish company called [Orangeworks](https://www.orangeworks.ie/) with an unusual request -
