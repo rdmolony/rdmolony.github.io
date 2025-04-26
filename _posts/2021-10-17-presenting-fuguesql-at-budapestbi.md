@@ -4,6 +4,7 @@ layout: "post"
 description: |
   Some thoughts on presenting a FugueSQL tutorial at a virtual conference
 show_description: false
+archived: false
 ---
 
 In 2021, in collaboration with Kevin Kho, I presented a brief introduction to `FugueSQL`,  a language that allows heavy SQL users to work on Python-based DataFrames,  at the [2021 `BudapestBI` conference](https://budapestbi.hu/2021/hu/eloadok/kevin-kho/)

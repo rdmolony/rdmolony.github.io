@@ -53,6 +53,7 @@ defaults:
       show_description: true
       description: |
         Some Reflections on Software Engineering - Web Development & Data Pipelines
+      archived: false
 
 # Exclude from processing.
 # The following items will not be processed, by default.
