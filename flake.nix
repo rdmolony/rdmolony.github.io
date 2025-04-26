@@ -9,7 +9,10 @@
         ${pkgs.ruby}/bin/bundle exec jekyll serve --livereload
       '';
       run-tailwind = pkgs.writeShellScriptBin "run-tailwind" ''
-        ${pkgs.tailwindcss}/bin/tailwindcss --watch -i ./tailwind.css -o ./assets/css/tailwind.css
+        npx @tailwindcss/cli --watch -i ./tailwind.css -o ./assets/css/tailwind.css
+      '';
+      run-storybook = pkgs.writeShellScriptBin "run-storybook" ''
+        npx storybook dev
       '';
     in
     {
@@ -17,7 +20,9 @@
         buildInputs = with pkgs; [
           run-jekyll
           run-tailwind
+          run-storybook
           ruby
+          nodejs
         ];
       };
     }
