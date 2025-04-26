@@ -9,7 +9,7 @@
         ${pkgs.ruby}/bin/bundle exec jekyll serve --livereload
       '';
       run-tailwind = pkgs.writeShellScriptBin "run-tailwind" ''
-        npx @tailwindcss/cli --watch -i ./tailwind.css -o ./assets/css/tailwind.css
+        ${pkgs.tailwindcss}/bin/tailwindcss --watch -i ./tailwind.css -o ./assets/css/tailwind.css
       '';
     in
     {
@@ -18,7 +18,7 @@
           run-jekyll
           run-tailwind
           ruby
-          nodejs
+          tailwindcss
         ];
       };
     }
