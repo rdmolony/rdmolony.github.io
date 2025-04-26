@@ -1,9 +1,6 @@
 ---
 title: "From Excel to Python"
 layout: "post"
-redirect_from:
-  - /blog/2022-01-13-from-excel-to-visualisation-via-ploomber
-  - /blog/2023-11-09-struggling-to-do-reproducible-data-analytics-in-python
 description: |
   Some thoughts on learning & developing Python to "reproducibly" estimate regional building energy demands
 archived: true
