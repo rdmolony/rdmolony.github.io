@@ -54,6 +54,7 @@ defaults:
       description: |
         Some Reflections on Software Engineering - Web Development & Data Pipelines
       archived: false
+      tutorial: false
 
 # Exclude from processing.
 # The following items will not be processed, by default.

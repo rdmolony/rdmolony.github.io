@@ -1,13 +1,11 @@
 ---
-title: "Getting Sensor Data Into TimescaleDB via Django"
+title: "Import Timeseries Data into Django via TimescaleDB"
 layout: "post"
 description: |
-  A step-by-step tutorial on getting sensor data from files into TimescaleDB via Django
-archived: true
-permalink: /blog/:year-:month-:day-:title.html
+  In this tutorial I explain how to import timeseries data from text files into a Django web application connected to TimescaleDB, an extension to the Postgres relational database. I also argue that TimescaleDB and Django make quite a good match because TimescaleDB, unlike many other timeseries databases, allows one to store timeseries data alongside web application data.
+archived: false
+tutorial: true
 ---
-
-> This post was renamed to [Import Timeseries Data into Django via TimescaleDB]({% post_url 2023-12-14-import-timeseries-data-into-django-via-timescaledb %})
 
 > This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)
 
@@ -15,7 +13,7 @@ Over 2022-23 while working at `Mainstream Renewable Power` on an internal web ap
 
 [^TIMESCALEDB]: Don’t know what TimescaleDB is? [Read this article](https://www.timescale.com/learn/is-postgres-partitioning-really-that-hard-introducing-hypertables).
 
-> I reflect on this experience in detail in [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}).
+> I reflect on this experience in detail in [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}).  
 
 I do not, however, discuss how I adapted `Django` to play nicely with this database.  In my case, `Django` served as the “glue” between web browsers and the database. Specifically, to display a web page, it asks a database for the data it needs to render files that the browser interprets (HTML, CSS, and JavaScript) so it can display a user interface.
 
