@@ -839,10 +839,6 @@ div.highlighter-rouge {
   display: flex;
 }
 
-.inline-flex {
-  display: inline-flex;
-}
-
 .table {
   display: table;
 }
@@ -869,10 +865,6 @@ div.highlighter-rouge {
 
 .min-h-\[calc\(100vh-20rem\)\] {
   min-height: calc(100vh - 20rem);
-}
-
-.w-16 {
-  width: 4rem;
 }
 
 .w-64 {
@@ -913,10 +905,6 @@ div.highlighter-rouge {
 
 .items-center {
   align-items: center;
-}
-
-.items-baseline {
-  align-items: baseline;
 }
 
 .justify-center {
