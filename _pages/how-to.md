@@ -4,6 +4,8 @@ layout: page
 permalink: /how-to/
 ---
 
+# How To
+
 <div class="text-center mt-4 mb-20">
 
   <ul class="list-none pl-0 mb-8">

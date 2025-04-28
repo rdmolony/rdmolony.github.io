@@ -4,6 +4,8 @@ layout: page
 permalink: /about/
 ---
 
+# About
+
 I’m a Dublin-based software engineer with experience in full-stack web development, data engineering & analytics.
 
 I am passionate about using computers to solve problems by leveraging simple software tooling appropriate to the problem’s context. My goal is to continue to build a rich toolkit from which I can pull to craft elegant solutions (joyful, maintainable & fault-tolerant). 
