@@ -10,7 +10,7 @@ permalink: /how-to/
 
   <ul class="list-none pl-0 mb-8">
     {%- for post in site.posts -%}
-    {% if post.archived == false and post.tutorial == true %}
+    {% if post.archived == false and post.how_to == true %}
     <li class="info-box m-2 p-2">
       {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
       <span class="text-xs">{{ post.date | date: date_format }}</span>

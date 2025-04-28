@@ -4,7 +4,7 @@ layout: "post"
 description: |
   In this tutorial I explain how to import timeseries data from text files into a Django web application connected to TimescaleDB, an extension to the Postgres relational database. I also argue that TimescaleDB and Django make quite a good match because TimescaleDB, unlike many other timeseries databases, allows one to store timeseries data alongside web application data.
 archived: false
-tutorial: true
+how_to: true
 ---
 
 

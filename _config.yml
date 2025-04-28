@@ -48,7 +48,7 @@ defaults:
       show_description: true
       description: My personal website
       archived: false
-      tutorial: false
+      how_to: false
 
 # Exclude from processing.
 # The following items will not be processed, by default.
