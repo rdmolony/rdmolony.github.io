@@ -7,28 +7,10 @@ archived: false
 tutorial: true
 ---
 
-> This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)
-
-Over 2022-23 while working at `Mainstream Renewable Power` on an internal web application, I maintained a "data pipeline" that fetches files of sensor data readings from the world's most remote places, and transforms them into useful datasets.  These datasets form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.  I rebuilt the pipeline on top of `TimescaleDB`[^TIMESCALEDB], which enabled me to massively reduce the complexity of the system involved.
-
-[^TIMESCALEDB]: Don’t know what TimescaleDB is? [Read this article](https://www.timescale.com/learn/is-postgres-partitioning-really-that-hard-introducing-hypertables).
-
-> I reflect on this experience in detail in [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}).  
-
-I do not, however, discuss how I adapted `Django` to play nicely with this database.  In my case, `Django` served as the “glue” between web browsers and the database. Specifically, to display a web page, it asks a database for the data it needs to render files that the browser interprets (HTML, CSS, and JavaScript) so it can display a user interface.
-
-Let's walk through an example project to make these adaptations a bit more concrete.
-
-This tutorial assumes some familiarity with `Django` or a similar web framework.  If you have never used `Django` I highly recommend [the official tutorial](https://docs.djangoproject.com/en/5.0/intro/tutorial01/)
-
-
-> If you want to follow along locally, you can setup a developer environment via [`django-timescaledb-example`](https://github.com/rdmolony/django-timescaledb-example)
-
-> If you have any trouble getting setup,  feel free to ask a question at [`django-timescaledb-example/discussions`](https://github.com/rdmolony/django-timescaledb-example/discussions)
-
 
 {% capture table_of_contents %}
 
+- [Intro](#intro)
 - [Create a Sensor Data App Using Django](#create-a-sensor-data-app-using-django)
 - [Create a Homepage](#create-a-homepage)
 - [Create a Data Model for Files](#create-a-data-model-for-files)
@@ -47,6 +29,29 @@ This tutorial assumes some familiarity with `Django` or a similar web framework.
 
 {% endcapture %}
 {% include toc.html content=table_of_contents %}
+
+---
+
+## Intro
+
+> This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)
+
+Over 2022-23 while working at `Mainstream Renewable Power` on an internal web application, I maintained a "data pipeline" that fetches files of sensor data readings from the world's most remote places, and transforms them into useful datasets.  These datasets form the basis upon which the construction of renewables (wind turbines or solar panels) on site hinges.  I rebuilt the pipeline on top of `TimescaleDB`[^TIMESCALEDB], which enabled me to massively reduce the complexity of the system involved.
+
+[^TIMESCALEDB]: Don’t know what TimescaleDB is? [Read this article](https://www.timescale.com/learn/is-postgres-partitioning-really-that-hard-introducing-hypertables).
+
+> I reflect on this experience in detail in [Struggling to Sync Sensors & Databases]({% post_url 2023-12-04-struggling-to-sync-sensors-and-databases %}).  
+
+I do not, however, discuss how I adapted `Django` to play nicely with this database.  In my case, `Django` served as the “glue” between web browsers and the database. Specifically, to display a web page, it asks a database for the data it needs to render files that the browser interprets (HTML, CSS, and JavaScript) so it can display a user interface.
+
+Let's walk through an example project to make these adaptations a bit more concrete.
+
+This tutorial assumes some familiarity with `Django` or a similar web framework.  If you have never used `Django` I highly recommend [the official tutorial](https://docs.djangoproject.com/en/5.0/intro/tutorial01/)
+
+
+> If you want to follow along locally, you can setup a developer environment via [`django-timescaledb-example`](https://github.com/rdmolony/django-timescaledb-example)
+
+> If you have any trouble getting setup,  feel free to ask a question at [`django-timescaledb-example/discussions`](https://github.com/rdmolony/django-timescaledb-example/discussions)
 
 
 ---
