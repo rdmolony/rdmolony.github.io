@@ -1,7 +1,7 @@
 ---
-title: Tutorials
+title: How To
 layout: page
-permalink: /tutorials/
+permalink: /how-to/
 ---
 
 <div class="text-center mt-4 mb-20">
