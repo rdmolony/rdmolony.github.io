@@ -1,15 +1,10 @@
 ---
-layout: default
+title: Tutorials
+layout: page
 permalink: /tutorials/
 ---
 
-{% include bio.html %}
-
-<hr>
-
 <div class="text-center mt-4 mb-20">
-
-  <h2>Tutorials</h2>
 
   <ul class="list-none pl-0 mb-8">
     {%- for post in site.posts -%}
@@ -35,5 +30,3 @@ permalink: /tutorials/
   </ul>
 
 </div>
-
-{% include footer.html %}

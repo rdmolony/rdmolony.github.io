@@ -6,8 +6,6 @@ This website uses ...
 
 - `TailwindCSS` to style it[^TAILWINDCSS]
 
-- `StorybookJS` to experiment with & test styling[^STORYBOOKJS]
-
 ---
 
 ## Installation
@@ -103,7 +101,3 @@ bundle exec rougify style github.dark > assets/css/syntax.css
     `TailwindCSS` is being used in an atypical manner here. Typically, one would use it alongside a frontend framework to let one specify style in components directly in component `class` attributes, and the file watcher then propagates these attributes from `JS/JSX/TS/TSX` files (etc) to a `CSS` file. 
     
     I'm using it here as one would normally use plain old `CSS`, by overriding top-level classes in a `CSS` file, since I find it to be a bit more concise as a language.
- 
-[STORYBOOKJS]:
-
-    `StorybookJS` is a `Javascript` framework which enables [Component Driven Development](https://www.componentdriven.org/). I use it here to experiment with styling individual `HTML` elements (like buttons), and composing them into components. I also use it for catching UI regressions. 

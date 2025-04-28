@@ -4,11 +4,14 @@
 
 @layer base {
 
+  html {
+    @apply scroll-smooth bg-slate-50 dark:bg-slate-800
+  }
   body {
-    @apply bg-slate-50 dark:text-slate-100 dark:bg-slate-800 max-w-xl mx-auto mt-6 mb-9 p-4
+    @apply text-slate-900  dark:text-slate-100 
   }
   a {
-    @apply text-blue-600 dark:text-blue-200 hover:bg-blue-300 hover:text-slate-50 hover:rounded-lg hover:p-1 
+    @apply underline underline-offset-4 hover:text-slate-300
   }
   hr {
     @apply h-px border-0 m-8 bg-slate-400 shadow-lg
@@ -28,14 +31,14 @@
   button {
     @apply bg-slate-100 dark:bg-slate-700 shadow-lg rounded-lg p-2 hover:bg-blue-300
   }
-  .headshot-box {
-    @apply bg-slate-100 dark:bg-slate-700 hover:bg-blue-300 w-60 mx-auto mb-1 aspect-auto rounded-xl shadow-lg
-  }
   .info-box {
     @apply bg-slate-100 dark:bg-slate-700 p-4 mt-4 mb-8 rounded-xl shadow-lg text-center
   }
   .tldr {
     @apply bg-slate-100
+  }
+  .secondary-text {
+    @apply text-slate-400
   }
   code.language-plaintext {
     @apply bg-blue-200 dark:bg-blue-400 p-1 rounded-lg

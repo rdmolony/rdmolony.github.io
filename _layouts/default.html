@@ -3,46 +3,22 @@
 
   {%- include head.html -%}
 
-  <body>
+  <body class="flex flex-col h-screen justify-between">
 
-    <nav class="fixed top-4 left-4 z-50 overflow-auto max-h-[calc(100vh-1rem)]">
-      <div id="sidebar" class="hidden">
-        <!-- <div class="table-of-contents"> will be coepied here if present -->
-        <button id="toggle-sidebar">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+    <main class="flex-grow" aria-label="Content">
+      <div class="max-w-xl mx-auto mt-6 p-4">
+        {{ content }}
       </div>
-    </nav>
-
-    <main aria-label="Content">
-      {{ content }}
     </main>
 
+    <footer class="w-full p-4 text-sm secondary-text">
+      <div class="container mx-auto text-center">
+        <a href="{% link _pages/copyright.md %}">&copy; Rowan Molony {{ "now" | date: "%Y" }} </a>
+        | <a href="{% link _pages/disclosure.md %}">Disclosure</a>
+        | <a href="{% link _pages/privacy.md %}">Privacy</a>
+        | <a href="{% link _pages/built-with.md %}">Built With</a>
+      </div>
+    </footer>
   </body>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-  
-      // Pull table of contents into a sidebar
-
-      const tocUl = document.querySelector('#table-of-contents > ul');
-      const sidebar = document.getElementById('sidebar');
-
-      if (tocUl && sidebar) {
-        const clonedUL = document.querySelector('#table-of-contents').cloneNode(true);
-        clonedUL.id = "sidebar-table-of-contents"
-        clonedUL.classList.add("hidden");
-        sidebar.appendChild(clonedUL);
-        sidebar.classList.remove("hidden");
-      }
-
-      document.getElementById('toggle-sidebar').addEventListener('click', () => {
-        document.getElementById("sidebar-table-of-contents").classList.toggle('hidden');
-      });
-
-    });
-  </script>
 
 </html>
