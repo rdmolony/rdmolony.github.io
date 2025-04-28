@@ -34,7 +34,7 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
 
-permalink: /post/:title
+permalink: /post/:title-:year:month:day
 
 include:
   - _pages
@@ -49,6 +49,7 @@ defaults:
       description: My personal website
       archived: false
       how_to: false
+      reflection: false
 
 # Exclude from processing.
 # The following items will not be processed, by default.
