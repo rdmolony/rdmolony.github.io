@@ -5,7 +5,7 @@
 @layer base {
 
   html {
-    @apply scroll-smooth bg-slate-50 dark:bg-slate-800
+    @apply scroll-smooth bg-slate-50 dark:bg-slate-800 text-xl
   }
   body {
     @apply text-slate-900  dark:text-slate-100 

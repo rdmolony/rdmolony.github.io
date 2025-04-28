@@ -558,6 +558,8 @@ html {
   scroll-behavior: smooth;
   --tw-bg-opacity: 1;
   background-color: rgb(248 250 252 / var(--tw-bg-opacity));
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -883,8 +885,8 @@ div.highlighter-rouge {
   width: 100%;
 }
 
-.max-w-xl {
-  max-width: 36rem;
+.max-w-7xl {
+  max-width: 80rem;
 }
 
 .flex-grow {
