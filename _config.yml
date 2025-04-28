@@ -46,8 +46,7 @@ defaults:
     values:
       image: /assets/images/headshot.png
       show_description: true
-      description: |
-        Some Reflections on Software Engineering - Web Development & Data Pipelines
+      description: My personal website
       archived: false
       tutorial: false
 
