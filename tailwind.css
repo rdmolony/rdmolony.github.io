@@ -13,6 +13,9 @@
   a {
     @apply underline underline-offset-4 hover:text-slate-300
   }
+  a.btn {
+    @apply bg-slate-100 dark:bg-slate-700 hover:bg-slate-50 shadow-lg rounded-lg p-4
+  }
   hr {
     @apply h-px border-0 m-8 bg-slate-400 shadow-lg
   }
@@ -27,9 +30,6 @@
   }
   td {
     @apply p-3 border border-slate-300
-  }
-  button {
-    @apply bg-slate-100 dark:bg-slate-700 shadow-lg rounded-lg p-2 hover:bg-blue-300
   }
   .info-box {
     @apply bg-slate-100 dark:bg-slate-700 p-4 mt-4 mb-8 rounded-xl shadow-lg text-center
