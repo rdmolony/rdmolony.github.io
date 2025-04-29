@@ -794,6 +794,38 @@ div.highlighter-rouge {
   }
 }
 
+.navbar-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.navbar-dropdown > summary {
+  list-style-type: none;
+}
+
+.navbar-dropdown > ul {
+  position: absolute;
+  top: 100%;
+  right: 0px;
+  left: auto;
+  z-index: 50;
+  display: none;
+  width: -moz-max-content;
+  width: max-content;
+  max-width: 90vw;
+  list-style-type: none;
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity));
+  padding: 0.5rem;
+  --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.navbar-dropdown[open] > ul {
+  display: block;
+}
+
 .visible {
   visibility: visible;
 }
@@ -997,37 +1029,6 @@ div.highlighter-rouge {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
-}
-
-details.navbar-dropdown {
-  display: inline-block;
-  position: relative;
-}
-
-details.navbar-dropdown > summary {
-  list-style: none
-}
-
-details.navbar-dropdown > ul {
-  position: absolute;
-  top: 100%;
-  right: 0px;
-  left: auto;
-  z-index: 50;
-  width: -moz-max-content;
-  width: max-content;
-  max-width: 90vw;
-  --tw-bg-opacity: 1;
-  background-color: rgb(241 245 249 / var(--tw-bg-opacity));
-  padding: 0.5rem;
-  --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-  list-style-type: none;
-}
-
-details[open].navbar-dropdown > ul {
-  display: block;
 }
 
 @media (prefers-color-scheme: dark) {

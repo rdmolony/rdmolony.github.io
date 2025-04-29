@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .navbar-dropdown {
+    @apply inline-block relative;
+  }
+  
+  .navbar-dropdown > summary {
+    @apply list-none;
+  }
+  
+  .navbar-dropdown > ul {
+    @apply bg-slate-100 shadow-lg absolute top-full p-2 max-w-[90vw] w-max z-50 right-0 left-auto list-none hidden;
+  }
+  
+  .navbar-dropdown[open] > ul {
+    @apply block;
+  }
+}
+
 @layer base {
 
   html {
@@ -74,22 +92,4 @@
   div.highlighter-rouge {
     @apply ml-3 text-xs
   }
-}
-
-details.navbar-dropdown {
-  display: inline-block;
-  position: relative;
-}
-
-details.navbar-dropdown > summary {
-  list-style: none
-}
-
-details.navbar-dropdown > ul {
-  @apply bg-slate-100 shadow-lg absolute top-full p-2 max-w-[90vw] w-max z-50 right-0 left-auto;
-  list-style-type: none;
-}
-
-details[open].navbar-dropdown > ul {
-  display: block;
 }
