@@ -9,6 +9,11 @@
   
   .navbar-dropdown > summary {
     @apply list-none;
+    -webkit-appearance: none;
+  }
+  
+  .navbar-dropdown > summary::-webkit-details-marker {
+    display: none;
   }
   
   .navbar-dropdown > ul {
