@@ -19,7 +19,6 @@
 # in the templates via {{ site.myvariable }}.
 
 title: rowanmolony.com
-tagline: Blog
 url: https://www.rowanmolony.com
 author: Rowan Molony
 google_site_verification: A_2d0sbemvD2kO6wMnmReN5Vnt5nBVOv6JZfsJGDoag
