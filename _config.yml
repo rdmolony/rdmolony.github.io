@@ -18,6 +18,7 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
+repository: rdmolony/rdmolony.github.io
 title: rowanmolony.com
 url: https://www.rowanmolony.com
 author: Rowan Molony
