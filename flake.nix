@@ -19,6 +19,7 @@
           run-tailwind
           ruby
           tailwindcss
+          git-lfs
         ];
       };
     }
