@@ -17,7 +17,7 @@
   }
   
   .navbar-dropdown > ul {
-    @apply bg-slate-100 shadow-lg absolute top-full p-2 max-w-[90vw] w-max z-50 right-0 left-auto list-none hidden;
+    @apply bg-slate-100 shadow-lg absolute top-full p-2 max-w-[90vw] w-max z-50 right-0 left-auto list-none hidden text-lg space-y-3;
   }
   
   .navbar-dropdown[open] > ul {
