@@ -1,10 +1,10 @@
 ---
-title: CV
+title: Timeline
 layout: page
-permalink: /cv/
+permalink: /timeline/
 ---
 
-# CV
+# Timeline
 
 ## 2023-25
 
