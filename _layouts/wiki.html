@@ -16,7 +16,9 @@ layout: default
     {%- endif -%}</p>
 </header>
 
-{{ content }}
+<iframe id="rowans-wiki"
+        class="w-full"
+        src="{{ page.wiki }}"></iframe>
 
 <a href="{{ page.url | relative_url }}" hidden></a>
 
