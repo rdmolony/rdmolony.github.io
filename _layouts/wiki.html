@@ -18,40 +18,7 @@ layout: default
 
 <iframe id="rowans-wiki"
         class="w-full"
-        src="{{ page.wiki }}"></iframe>
+        src="{{ page.wiki }}"
+        onload="resizeMeOnContentChanges(this)"></iframe>
 
 <a href="{{ page.url | relative_url }}" hidden></a>
-
-<script>
-  const iframe = document.querySelector('#rowans-wiki');
-
-  iframe.onload = function() {
-    const iframeBody = iframe.contentWindow.document.body;
-
-    const resizeIframe = () => {
-      // Temporarily set height to auto or 0 to force a recalculation
-      iframe.style.height = 'auto';
-
-      // Use a slight delay of 10ms to allow the browser to recalculate the layout
-      setTimeout(() => {
-        iframe.style.height = iframeBody.scrollHeight + 'px';
-      }, 10);
-    };
-
-    // Initial resize on load
-    resizeIframe();
-
-    // Set up MutationObserver to watch for content changes
-    const observer = new MutationObserver(resizeIframe);
-
-    // Observe the body and html elements
-    if (iframeBody) {
-      observer.observe(iframeBody, {
-        childList: true,
-        attributes: true,
-        subtree: true,
-        characterData: true
-      });
-    }
-  };
-</script>
