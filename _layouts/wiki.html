@@ -27,17 +27,16 @@ layout: default
     const iframeBody = iframe.contentWindow.document.body;
 
     const resizeIframe = () => {
-      // Temporarily set height to auto or 0 to potentially force a recalculation
+      // Temporarily set height to auto or 0 to force a recalculation
       iframe.style.height = 'auto';
 
       // Use a slight delay to allow the browser to recalculate the layout
       setTimeout(() => {
         let contentHeight = 0;
 
-        // Attempt to get the most accurate height after potential recalculation
+        // Attempt to get the most accurate height after recalculation
         if (iframeBody) {
           contentHeight = Math.max(contentHeight, iframeBody.scrollHeight || 0);
-          contentHeight = Math.max(contentHeight, iframeBody.offsetHeight || 0);
         }
 
         iframe.style.height = contentHeight + 'px';
