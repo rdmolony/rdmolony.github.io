@@ -30,18 +30,10 @@ layout: default
       // Temporarily set height to auto or 0 to force a recalculation
       iframe.style.height = 'auto';
 
-      // Use a slight delay to allow the browser to recalculate the layout
+      // Use a slight delay of 10ms to allow the browser to recalculate the layout
       setTimeout(() => {
-        let contentHeight = 0;
-
-        // Attempt to get the most accurate height after recalculation
-        if (iframeBody) {
-          contentHeight = Math.max(contentHeight, iframeBody.scrollHeight || 0);
-        }
-
-        iframe.style.height = contentHeight + 'px';
-
-      }, 10); // A delay of 0ms or a small value like 10ms can be sufficient
+        iframe.style.height = iframeBody.scrollHeight + 'px';
+      }, 10);
     };
 
     // Initial resize on load
