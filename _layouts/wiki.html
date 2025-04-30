@@ -1,0 +1,48 @@
+---
+layout: default
+---
+
+<header class="text-center">
+  <h1 class="text-3xl" itemprop="name headline">{{ page.title | escape }}</h1>
+  <p class="text-l" >
+    <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+      {{ page.date | date: date_format }}
+    </time>
+    {%- if page.author -%}
+      <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">{{ page.author }}</span>
+      </span>
+    {%- endif -%}</p>
+</header>
+
+{{ content }}
+
+<a href="{{ page.url | relative_url }}" hidden></a>
+
+<script>
+  const iframe = document.querySelector('#rowans-wiki');
+
+  iframe.onload = function() {
+    const iframeDocument = iframe.contentWindow.document;
+    const iframeBody = iframeDocument.body;
+
+    const resizeIframe = () => {
+      iframe.style.height = iframeBody.scrollHeight + 'px';
+    };
+
+    // Initial resize on load
+    resizeIframe();
+
+    // Set up MutationObserver to watch for content changes
+    const observer = new MutationObserver(resizeIframe);
+
+    // Observe the body of the iframe for changes in child elements, attributes, and subtree
+    observer.observe(iframeBody, {
+      childList: true,
+      attributes: true,
+      subtree: true,
+      characterData: true // Also observe changes in text content
+    });
+  };
+</script>
