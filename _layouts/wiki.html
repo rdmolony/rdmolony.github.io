@@ -19,6 +19,6 @@ layout: default
 <iframe class="w-full"
         style="height: 200vh; overflow-y: auto;"
         src="{{ page.wiki }}"
-        onload="applyFunctions(this, inheritBackgroundColor)"></iframe>
+        onload="applyFunctions(this, inheritBackgroundColor, resizeMeOnContentChanges)"></iframe>
 
 <a href="{{ page.url | relative_url }}" hidden></a>
