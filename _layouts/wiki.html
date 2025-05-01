@@ -19,6 +19,6 @@ layout: default
 <iframe id="rowans-wiki"
         class="w-full"
         src="{{ page.wiki }}"
-        onload="resizeMeOnContentChanges(this)"></iframe>
+        onload="pipe(this, resizeMeOnContentChanges)"></iframe>
 
 <a href="{{ page.url | relative_url }}" hidden></a>
