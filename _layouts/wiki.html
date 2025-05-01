@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+<header class="text-center mt-6 p-4">
+  <h1 class="text-3xl" itemprop="name headline">{{ page.title | escape }}</h1>
+  <p class="text-l" >
+    <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+      {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+      {{ page.date | date: date_format }}
+    </time>
+    {%- if page.author -%}
+      <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">{{ page.author }}</span>
+      </span>
+    {%- endif -%}</p>
+</header>
+
+<iframe class="w-full"
+        src="{{ page.wiki }}"
+        onload="applyFunctions(this, resizeMeOnContentChanges, inheritBackgroundColor)"></iframe>
+
+<a href="{{ page.url | relative_url }}" hidden></a>

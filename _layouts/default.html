@@ -3,7 +3,7 @@
 
   {%- include head.html -%}
 
-  <body class="flex flex-col h-screen justify-between">
+  <body>
 
     <header class="w-full p-4 shadow-sm">
       <nav class="container mx-auto flex justify-between items-center">
@@ -31,10 +31,8 @@
       </nav>
     </header>
 
-    <main class="flex-grow" aria-label="Content">
-      <div class="max-w-2xl mx-auto mt-6 p-4">
-        {{ content }}
-      </div>
+    <main aria-label="Content">
+      {{ content }}
     </main>
 
     <footer class="w-full p-4 text-sm secondary-text">

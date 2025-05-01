@@ -2,25 +2,31 @@
 layout: default
 ---
 
-<article itemscope itemtype="http://schema.org/BlogPosting">
+<div class="flex flex-col h-screen justify-between">
+  <div class="max-w-2xl mx-auto mt-6 p-4">
 
-  <header class="text-center">
-    <h1 class="text-3xl" itemprop="name headline">{{ page.title | escape }}</h1>
-    <p class="text-l" >
-      <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-        {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
-        {{ page.date | date: date_format }}
-      </time>
-      {%- if page.author -%}
-        <span itemprop="author" itemscope itemtype="http://schema.org/Person">
-          <span itemprop="name">{{ page.author }}</span>
-        </span>
-      {%- endif -%}</p>
-  </header>
+    <article itemscope itemtype="http://schema.org/BlogPosting">
 
-  <div class="relative" itemprop="articleBody">
-    {{ content }}
+      <header class="text-center">
+        <h1 class="text-3xl" itemprop="name headline">{{ page.title | escape }}</h1>
+        <p class="text-l" >
+          <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+            {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+            {{ page.date | date: date_format }}
+          </time>
+          {%- if page.author -%}
+            <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+              <span itemprop="name">{{ page.author }}</span>
+            </span>
+          {%- endif -%}</p>
+      </header>
+
+      <div class="relative" itemprop="articleBody">
+        {{ content }}
+      </div>
+
+      <a href="{{ page.url | relative_url }}" hidden></a>
+    </article>
+
   </div>
-
-  <a href="{{ page.url | relative_url }}" hidden></a>
-</article>
+</div>
