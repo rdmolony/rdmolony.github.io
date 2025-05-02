@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ page.lang | default: site.lang | default: "en" }}">
 
-  {%- include head.html -%}
+  {%- include head.html redirect_to=page.redirect_to -%}
 
   <body class="flex flex-col h-screen">
 
@@ -27,6 +27,13 @@
         </details>
       </nav>
     </header>
+
+    {% if page.redirect_to %}
+    <div>
+      If you are not redirected automatically, follow this link:
+      <a href="{{ page.redirect_to }}">{{ page.redirect_to }}</a>
+    </div>
+    {% endif %}  
 
     <main class="flex-grow" aria-label="Content">
       <div class="mt-6 p-4">
