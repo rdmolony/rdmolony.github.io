@@ -25,12 +25,18 @@ function resizeMeOnContentChanges(iframe) {
         const STABILITY_THRESHOLD = 1000; // Consider content stable after 1 second of no changes
 
         const resizeIframe = () => {
+            // Store current scroll position before resizing
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            
             // Temporarily set height to auto to force a recalculation
             iframe.style.height = 'auto';
 
             // Use a slight delay to allow the browser to recalculate the layout
             setTimeout(() => {
                 iframe.style.height = iframeBody.scrollHeight + 'px';
+                
+                // Restore scroll position
+                window.scrollTo(0, scrollTop);
             }, 10);
         };
 
