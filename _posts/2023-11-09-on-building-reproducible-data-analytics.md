@@ -5,7 +5,6 @@ description: |
   I reflect on my experience learning & using various Python-based data tools to reproducibly estimate regional building energy demands as a part of the Dublin Region Energy Masterplan at Codema
 archived: false
 reflection: true
-permalink: /blog/:year-:month-:day-:title.html
 ---
 
 {% capture tldr %}

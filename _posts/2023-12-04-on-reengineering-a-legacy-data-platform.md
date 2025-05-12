@@ -5,7 +5,6 @@ description: |
   I reflect on my experience re-engineering a legacy data platform system to resolve its reliability issues
 archived: false
 reflection: true
-permalink: /blog/:year-:month-:day-:title.html
 ---
 
 {% capture tldr %}
