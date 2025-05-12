@@ -8,7 +8,7 @@ reflection: true
 permalink: /blog/:year-:month-:day-:title.html
 ---
 
-> This post was renamed to [On Re-Engineering a Legacy Data Platform]({% post_url 2023-12-04-on-reengineering-a-legacy-data-platform %})
+> This is an old version, for the latest version checkout: [On Re-Engineering a Legacy Data Platform]({% post_url 2023-12-04-on-reengineering-a-legacy-data-platform %})
 
 {% capture tldr %}
 

@@ -8,7 +8,7 @@ reflection: true
 permalink: /blog/:year-:month-:day-:title.html
 ---
 
-> This post was renamed to [On Building Reproducible Data Analytics]({% post_url 2023-11-09-on-building-reproducible-data-analytics %})
+> This is an old version, for the latest version checkout: [On Building Reproducible Data Analytics]({% post_url 2023-11-09-on-building-reproducible-data-analytics %})
 
 {% capture tldr %}
 

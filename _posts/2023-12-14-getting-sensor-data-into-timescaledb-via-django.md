@@ -7,7 +7,7 @@ archived: true
 permalink: /blog/:year-:month-:day-:title.html
 ---
 
-> This post was renamed to [Import Timeseries Data into Django via TimescaleDB]({% post_url 2023-12-14-import-timeseries-data-into-django-via-timescaledb %})
+> This is an old version, for the latest version checkout: [Import Timeseries Data into Django via TimescaleDB]({% post_url 2023-12-14-import-timeseries-data-into-django-via-timescaledb %})
 
 > This post was developed in collaboration with `TimescaleDB` & is also available on the [`TimescaleDB` Blog](https://www.timescale.com/blog/getting-sensor-data-into-timescaledb-via-django/)
 
