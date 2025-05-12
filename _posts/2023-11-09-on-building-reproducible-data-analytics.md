@@ -1,14 +1,12 @@
 ---
-title: "From Excel to Python"
+title: "On Building Reproducible Data Analytics"
 layout: "post"
 description: |
-  Some thoughts on learning & developing Python to "reproducibly" estimate regional building energy demands
-archived: true
+  I reflect on my experience learning & using various Python-based data tools to reproducibly estimate regional building energy demands as a part of the Dublin Region Energy Masterplan at Codema
+archived: false
 reflection: true
 permalink: /blog/:year-:month-:day-:title.html
 ---
-
-> This post was renamed to [On Building Reproducible Data Analytics]({% post_url 2023-11-09-on-building-reproducible-data-analytics %})
 
 {% capture tldr %}
 

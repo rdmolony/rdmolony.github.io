@@ -1,14 +1,12 @@
 ---
-title: "Struggling to Sync Sensors & Databases"
+title: "On Re-Engineering a Legacy Data Platform"
 layout: "post"
 description: |
-  Some thoughts on adapting a pre-existing "data syncing" system to improve its maintainability & reliability
-archived: true
+  I reflect on my experience re-engineering a legacy data platform system to resolve its reliability issues
+archived: false
 reflection: true
 permalink: /blog/:year-:month-:day-:title.html
 ---
-
-> This post was renamed to [On Re-Engineering a Legacy Data Platform]({% post_url 2023-12-04-on-reengineering-a-legacy-data-platform %})
 
 {% capture tldr %}
 
