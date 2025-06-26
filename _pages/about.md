@@ -7,7 +7,6 @@ permalink: /about/
 # About
 
 <div class="flex flex-wrap justify-center gap-2 pb-4">
-    <a class="btn" href="{% link _pages/cv.md %}">CV</a>
     <a class="btn" href="{% link _pages/timeline.md %}">Timeline</a>
 </div>
 
