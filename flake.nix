@@ -13,7 +13,7 @@
         bundle config set --local path 'vendor/bundle'
         bundle install
         echo "Starting Jekyll with live reload..."
-        bundle exec jekyll serve --livereload --host 0.0.0.0 --port 4000
+        bundle exec jekyll serve --livereload --port 4000
       '';
       
       tailwind-watch = pkgs.writeShellScriptBin "tailwind-watch" ''
