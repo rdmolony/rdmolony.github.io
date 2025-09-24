@@ -7,6 +7,8 @@ how_to: true
 archived: false
 --- 
 
+> **Warning:** I am not a member of the `Claude Flow` team, this is merely what I picked up from watching videos at [https://video.agentics.org/](https://video.agentics.org/). If there's anything inaccurate here, please post an issue at [https://github.com/rdmolony/claude-flow-getting-started/issues](https://github.com/rdmolony/claude-flow-getting-started/issues)
+
 Since the launch of [`Claude Code`](https://docs.anthropic.com/en/docs/claude-code/overview) in May 2025, it has become more & more widely adopted among (particularly among software engineers).
 
 > What's `Claude Code`? 
