@@ -1,6 +1,6 @@
 ---
 title: "Intro to Claude Flow"
-layout: default
+layout: "post"
 description: |
   I walk through how to setup Claude Flow to solve a problem by orchestrating multiple, specialised AI agents 
 how_to: true
